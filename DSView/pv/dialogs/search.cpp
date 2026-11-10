@@ -61,7 +61,8 @@ Search::Search(QWidget *parent, SigSession *session, std::map<uint16_t, QString>
     search_buttonBox.addButton(QDialogButtonBox::Cancel);
 
     QGridLayout *search_layout = new QGridLayout();
-    search_layout->setVerticalSpacing(0);
+    search_layout->setVerticalSpacing(4);
+    search_layout->setHorizontalSpacing(8);
 
     int index = 0;
 
@@ -89,12 +90,13 @@ Search::Search(QWidget *parent, SigSession *session, std::map<uint16_t, QString>
         }
     }
 
-    search_layout->addWidget(new QLabel(" "), index,0);
     //tr
     search_layout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEARCH_LABEL), 
-                            "X: Don't care\n0: Low level\n1: High level\nR: Rising edge\nF: Falling edge\nC: Rising/Falling edge")), 0, 3, index, 1);
-    search_layout->addWidget(&search_buttonBox, index+1, 3);
+                            "X: Don't care\n0: Low level\n1: High level\nR: Rising edge\nF: Falling edge\nC: Rising/Falling edge")), 0, 3, index, 1, Qt::AlignTop);
+    search_layout->setColumnMinimumWidth(3, 160);
     search_layout->setColumnStretch(3, 100);
+    search_layout->addItem(new QSpacerItem(0, 8), index, 0);
+    search_layout->addWidget(&search_buttonBox, index+1, 0, 1, 4);
 
     layout()->addLayout(search_layout);
     setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEARCH_OPTIONS), "Search Options"));

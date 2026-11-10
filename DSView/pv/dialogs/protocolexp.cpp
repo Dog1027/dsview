@@ -68,7 +68,8 @@ ProtocolExp::ProtocolExp(QWidget *parent, SigSession *session) :
     _format_combobox->addItem("Text files (*.txt)");
 
     _flayout = new QFormLayout();
-    _flayout->setVerticalSpacing(5);
+    _flayout->setVerticalSpacing(8);
+    _flayout->setHorizontalSpacing(12);
     _flayout->setFormAlignment(Qt::AlignLeft);
     _flayout->setLabelAlignment(Qt::AlignLeft);
     _flayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
@@ -99,6 +100,7 @@ ProtocolExp::ProtocolExp(QWidget *parent, SigSession *session) :
     }
 
     _layout = new QVBoxLayout();
+    _layout->setSpacing(12);
     _layout->addLayout(_flayout);
     _layout->addWidget(&_button_box);
 

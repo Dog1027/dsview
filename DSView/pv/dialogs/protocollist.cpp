@@ -74,7 +74,8 @@ ProtocolList::ProtocolList(QWidget *parent, SigSession *session) :
         _protocol_combobox->setCurrentIndex(index);
 
     _flayout = new QFormLayout();
-    _flayout->setVerticalSpacing(5);
+    _flayout->setVerticalSpacing(8);
+    _flayout->setHorizontalSpacing(12);
     _flayout->setFormAlignment(Qt::AlignLeft);
     _flayout->setLabelAlignment(Qt::AlignLeft);
     _flayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
@@ -82,6 +83,7 @@ ProtocolList::ProtocolList(QWidget *parent, SigSession *session) :
     _flayout->addRow(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DECODED_PROTOCOLS), "Decoded Protocols: "), this), _protocol_combobox);
 
     _layout = new QVBoxLayout();
+    _layout->setSpacing(12);
     _layout->addLayout(_flayout);
     _layout->addWidget(&_button_box);
 

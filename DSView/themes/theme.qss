@@ -83,7 +83,7 @@ QPushButton#flat:hover
 
 QCheckBox
 {
-    spacing: 0px;
+    spacing: 8px;
     outline: none;
     color: @text;
     margin-bottom: 2px;
@@ -165,7 +165,7 @@ QGroupBox::indicator:unchecked:disabled
 
 QRadioButton
 {
-    spacing: 5px;
+    spacing: 8px;
     outline: none;
     color: @text;
     margin-bottom: 2px;
@@ -390,21 +390,22 @@ QTextEdit
     color: @text;
 }
 
+/* Group: title above a rounded frame (the title does not cut the line). */
 QGroupBox
 {
-    border: 1px solid @hover;
-    border-radius: 6px;
-    margin-top: 20px;
+    border: 1px solid @border;
+    border-radius: 8px;
+    margin-top: 1.7em;
+    padding-top: 2px;
 }
 
 QGroupBox::title
 {
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    left: 8px;
-    padding-left: 4px;
-    padding-right: 4px;
-    padding-top: 10px;
+    left: 2px;
+    padding: 0px;
+    font-weight: 600;
 }
 
 QScrollBar:horizontal
@@ -1840,4 +1841,12 @@ QFrame#dialog_frame
     background-color: @bg;
     border: 1px solid @border;
     border-radius: 10px;
+}
+
+/* ---- Dialog buttons --------------------------------------------------- */
+
+QDialogButtonBox QPushButton
+{
+    min-width: 72px;
+    padding: 5px 12px;
 }

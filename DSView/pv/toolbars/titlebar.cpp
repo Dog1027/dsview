@@ -78,7 +78,8 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
 #else
     const QSize buttonSize(28, 28);
     const int buttonGap = 6;
-    const int rightMargin = 10;
+    // In a dialog the frame already has a margin.
+    const int rightMargin = top ? 10 : 0;
     const bool compactButtons = true;
 #endif
 
@@ -127,11 +128,19 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
     int buttonsWidth = buttons > 0
         ? buttons * buttonSize.width() + (buttons - 1) * buttonGap + rightMargin : 0;
 
-    lay1->addSpacing(qMax(48, buttonsWidth));
-    lay1->addStretch(500);
-    lay1->addWidget(_title);
-    lay1->addStretch(500);
-    lay1->addSpacing(qMax(0, 48 - buttonsWidth));
+    if (_isTop) {
+        lay1->addSpacing(qMax(48, buttonsWidth));
+        lay1->addStretch(500);
+        lay1->addWidget(_title);
+        lay1->addStretch(500);
+        lay1->addSpacing(qMax(0, 48 - buttonsWidth));
+    }
+    else {
+        // Dialogs: plain title on the left, lined up with the content.
+        lay1->addSpacing(2);
+        lay1->addWidget(_title);
+        lay1->addStretch(1);
+    }
     lay1->addLayout(buttonLay);
 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed); 
@@ -182,10 +191,12 @@ void TitleBar::paintEvent(QPaintEvent *event)
 
     p.setRenderHint(QPainter::Antialiasing, true);
 
-    // App icon, like other apps show in their title bar.
-    static const QIcon logo(":/icons/logo.svg");
-    const int size = 18;
-    logo.paint(&p, QRect(12, (height() - size) / 2, size, size));
+    // App icon, like other apps show in their title bar (not in dialogs).
+    if (_isTop) {
+        static const QIcon logo(":/icons/logo.svg");
+        const int size = 18;
+        logo.paint(&p, QRect(12, (height() - size) / 2, size, size));
+    }
 
     QWidget::paintEvent(event);
 }
@@ -375,6 +386,8 @@ void TitleBar::UpdateFont()
 {  
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
+    if (!_isTop)
+        font.setWeight(QFont::DemiBold);
     _title->setFont(font);
 }
 

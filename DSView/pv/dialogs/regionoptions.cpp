@@ -45,7 +45,7 @@ RegionOptions::RegionOptions(view::View *view, SigSession *session, QWidget *par
 {
     QHBoxLayout *hlayout = new QHBoxLayout();
     hlayout->setContentsMargins(0,0,0,0);
-    hlayout->setSpacing(0);
+    hlayout->setSpacing(8);
     _start_comboBox = new DsComboBox(this);
     _end_comboBox = new DsComboBox(this);
     _start_comboBox->addItem(RegionStart);
@@ -63,13 +63,14 @@ RegionOptions::RegionOptions(view::View *view, SigSession *session, QWidget *par
         }
     }
 
-    hlayout->addWidget(new QLabel("Start: ", this));
-    hlayout->addWidget(_start_comboBox);
-    hlayout->addWidget(new QLabel("    ", this));
-    hlayout->addWidget(new QLabel("End: ", this));
-    hlayout->addWidget(_end_comboBox);
+    hlayout->addWidget(new QLabel("Start", this));
+    hlayout->addWidget(_start_comboBox, 1);
+    hlayout->addSpacing(12);
+    hlayout->addWidget(new QLabel("End", this));
+    hlayout->addWidget(_end_comboBox, 1);
 
     QVBoxLayout *vlayout = new QVBoxLayout();
+    vlayout->setSpacing(12);
     vlayout->addLayout(hlayout);
     vlayout->addWidget(&_button_box);
 

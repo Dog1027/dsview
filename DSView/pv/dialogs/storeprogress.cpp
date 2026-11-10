@@ -51,7 +51,7 @@ StoreProgress::StoreProgress(SigSession *session, QWidget *parent) :
     _store_session = new StoreSession(session);
     _progress = new XProgressBar(this);
 
-    this->setMinimumSize(550, 220);
+    this->setMinimumWidth(520);
     this->setModal(true);
  
     _progress->setValue(0);
@@ -65,13 +65,11 @@ StoreProgress::StoreProgress(SigSession *session, QWidget *parent) :
 
     QGridLayout *grid = new QGridLayout(); 
     _grid = grid;
-    grid->setContentsMargins(10, 20, 10, 10);
-    grid->setVerticalSpacing(25);
-
-    grid->setColumnStretch(0, 2);
-    grid->setColumnStretch(1, 2);
-    grid->setColumnStretch(2, 1);
-    grid->setColumnStretch(3, 1);
+    // Rows: progress / file + path button / options / buttons.
+    grid->setContentsMargins(0, 0, 0, 0);
+    grid->setHorizontalSpacing(10);
+    grid->setVerticalSpacing(14);
+    grid->setColumnStretch(0, 1);
 
     _fileLab = new QTextEdit();
     _fileLab->setReadOnly(true);   
@@ -80,19 +78,20 @@ StoreProgress::StoreProgress(SigSession *session, QWidget *parent) :
 
     _openButton = new QPushButton(this);
     _openButton->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PATH_NAME), "path"));
+    _openButton->setMinimumWidth(72);
 
     _space = new QWidget(this);
-    _space->setMinimumHeight(80);
+    _space->setMinimumHeight(40);
     _space->setVisible(false);
 
-    grid->addWidget(_progress, 0, 0, 1, 4);
-    grid->addWidget(_fileLab, 1, 0, 1, 3);
-    grid->addWidget(_openButton, 1, 3, 1, 1);    
-    grid->addWidget(_space);
+    grid->addWidget(_progress, 0, 0, 1, 2);
+    grid->addWidget(_fileLab, 1, 0, 1, 1);
+    grid->addWidget(_openButton, 1, 1, 1, 1, Qt::AlignVCenter);
+    grid->addWidget(_space, 2, 0, 1, 2);
 
     QDialogButtonBox  *_button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, 
                                         Qt::Horizontal, this);
-    grid->addWidget(_button_box, 2, 2, 1, 2, Qt::AlignRight | Qt::AlignBottom);
+    grid->addWidget(_button_box, 3, 0, 1, 2);
 
     layout()->addLayout(grid);
 
@@ -270,7 +269,9 @@ void StoreProgress::save_run(ISessionDataGetter *getter)
     if (_store_session->IsLogicDataType() && _view != NULL)
     {
         QFormLayout *lay = new QFormLayout();
-        lay->setContentsMargins(5, 0, 0, 0); 
+        lay->setContentsMargins(0, 0, 0, 0);
+        lay->setHorizontalSpacing(10);
+        lay->setVerticalSpacing(8);
         _start_cursor = new DsComboBox();
         _end_cursor = new DsComboBox();
    
@@ -300,7 +301,9 @@ void StoreProgress::export_run()
     if (_store_session->IsLogicDataType())
     { 
         QFormLayout *lay = new QFormLayout();
-        lay->setContentsMargins(5, 0, 0, 0); 
+        lay->setContentsMargins(0, 0, 0, 0);
+        lay->setHorizontalSpacing(10);
+        lay->setVerticalSpacing(8);
         bool isOrg = AppConfig::Instance().appOptions.originalData;
 
         _ckOrigin  = new QRadioButton();
@@ -329,10 +332,6 @@ void StoreProgress::export_run()
 
         lay->addRow(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_START_CURSOR), "Start") , _start_cursor);
         lay->addRow(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_END_CURSOR), "End"), _end_cursor);
-
-        QWidget *space = new QWidget();
-        space->setFixedHeight(5);
-        lay->addRow(space);
 
         lay->addRow("",_ckOrigin);
         lay->addRow("", _ckCompress);

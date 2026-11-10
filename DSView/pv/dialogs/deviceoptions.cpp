@@ -26,6 +26,7 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QLayoutItem>
 #include <assert.h>
 
@@ -103,8 +104,7 @@ DeviceOptions::DeviceOptions(QWidget *parent) :
     _device_agent = session->get_device();
 
     this->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DEVICE_OPTIONS), "Device Options"));
-    this->SetTitleSpace(0);
-    this->layout()->setSpacing(0);
+    this->layout()->setSpacing(12);
     this->layout()->setDirection(QBoxLayout::TopToBottom);
     this->layout()->setAlignment(Qt::AlignTop); 
 
@@ -123,7 +123,7 @@ DeviceOptions::DeviceOptions(QWidget *parent) :
     _container_lay->setDirection(QBoxLayout::TopToBottom);
     _container_lay->setAlignment(Qt::AlignTop);
     _container_lay->setContentsMargins(0, 0, 0, 0);
-    _container_lay->setSpacing(5);
+    _container_lay->setSpacing(12);
     _container_panel->setLayout(_container_lay);
     scroll_lay->addWidget(_container_panel);
 
@@ -133,10 +133,9 @@ DeviceOptions::DeviceOptions(QWidget *parent) :
     // mode group box
     QGroupBox *props_box = new QGroupBox(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_MODE), "Mode"), this);
     props_box->setFont(font);
-    props_box->setMinimumHeight(70);
     props_box->setAlignment(Qt::AlignTop);
     QLayout *props_lay = get_property_form(props_box);
-    props_lay->setContentsMargins(5, 20, 5, 5);
+    props_lay->setContentsMargins(12, 10, 12, 12);
     props_box->setLayout(props_lay);
     _container_lay->addWidget(props_box);
 
@@ -147,11 +146,6 @@ DeviceOptions::DeviceOptions(QWidget *parent) :
 
     // chnnels group box
     this->build_dynamic_panel();
-
-    // space
-    QWidget *space = new QWidget();
-    space->setMinimumHeight(5);
-    this->layout()->addWidget(space);
 
     //button
     auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
@@ -241,7 +235,8 @@ void DeviceOptions::reject()
 QLayout * DeviceOptions::get_property_form(QWidget * parent)
 {
     QGridLayout *const layout = new QGridLayout(parent);
-    layout->setVerticalSpacing(2);
+    layout->setVerticalSpacing(8);
+    layout->setHorizontalSpacing(16);
     const auto &properties =_device_options_binding.properties();
 
     QFont font = this->font();
@@ -277,9 +272,6 @@ QLayout * DeviceOptions::get_property_form(QWidget * parent)
         i++;
 	}
 
-    _groupHeight1 = parent->sizeHint().height() + 30; 
- 
-    parent->setFixedHeight(_groupHeight1); 
 
     return layout;
 }
@@ -288,7 +280,7 @@ void DeviceOptions::logic_probes(QVBoxLayout &layout)
 {
 	using namespace Qt;
 
-    layout.setSpacing(2);
+    layout.setSpacing(6);
 
     int row1 = 0;
     int row2 = 0;
@@ -343,8 +335,9 @@ void DeviceOptions::logic_probes(QVBoxLayout &layout)
     // channels
     QWidget *channel_pannel = new QWidget();
     QGridLayout *channel_grid = new QGridLayout();
-    channel_grid->setContentsMargins(0,0,0,0);
-    channel_grid->setSpacing(0);
+    channel_grid->setContentsMargins(0,4,0,4);
+    channel_grid->setHorizontalSpacing(2);
+    channel_grid->setVerticalSpacing(8);
     channel_pannel->setLayout(channel_grid);
 
     int channel_row = 0;
@@ -379,12 +372,6 @@ void DeviceOptions::logic_probes(QVBoxLayout &layout)
 
     layout.addWidget(channel_pannel);
 
-    // space
-    QWidget *space = new QWidget();
-    space->setFixedHeight(10);
-    layout.addWidget(space);
-    contentHeight += 10;
- 
     // buttons
     QHBoxLayout *line_lay = new QHBoxLayout();
     layout.addLayout(line_lay);
@@ -392,14 +379,9 @@ void DeviceOptions::logic_probes(QVBoxLayout &layout)
 
     QPushButton *enable_all_probes = new QPushButton(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_ENABLE_ALL), "Enable All"));
     QPushButton *disable_all_probes = new QPushButton(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DISABLE_ALL), "Disable All"));
-    enable_all_probes->setMaximumHeight(33);
-    disable_all_probes->setMaximumHeight(33);
     enable_all_probes->setFont(font);
     disable_all_probes->setFont(font);
 
-    int bt_width = enable_all_probes->fontMetrics().horizontalAdvance(enable_all_probes->text()) + 20;
-    enable_all_probes->setMaximumWidth(bt_width);
-    disable_all_probes->setMaximumWidth(bt_width);
 
     this->update_font(); 
 
@@ -413,14 +395,9 @@ void DeviceOptions::logic_probes(QVBoxLayout &layout)
 
     line_lay->addWidget(enable_all_probes);
     line_lay->addWidget(disable_all_probes);
+    line_lay->addStretch(1);
 
-    _groupHeight2 = contentHeight + (row1 + row2) * 2 + 38;
-
-#ifdef Q_OS_DARWIN
-    _groupHeight2 += 5;
-#endif
-
-    _dynamic_panel->setFixedHeight(_groupHeight2); 
+    (void)contentHeight;
 }
 
 void DeviceOptions::set_all_probes(bool set)
@@ -753,8 +730,6 @@ void DeviceOptions::analog_probes(QGridLayout &layout)
     layout.addWidget(tabWidget, 0, 0, 1, 1);
 
     this->update_font();
-    _groupHeight2 = tabWidget->sizeHint().height() + 50;
-    _dynamic_panel->setFixedHeight(_groupHeight2); 
 
     connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_anlog_tab_changed(int)));
     tabWidget->setCurrentIndex(_cur_analog_tag_index);
@@ -797,11 +772,6 @@ QString DeviceOptions::dynamic_widget(QLayout *lay)
                 grid->addWidget(cali_button, 1, 0, 1, 1);
                 connect(cali_button, SIGNAL(clicked()), this, SLOT(on_calibration()));
 
-                config_button->setFixedHeight(35);
-                cali_button->setFixedHeight(35);
-
-                _groupHeight2 = 135;
-                _dynamic_panel->setFixedHeight(_groupHeight2); 
 
                 //tr
                 return L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CALIBRATION), "Calibration");
@@ -823,6 +793,9 @@ void DeviceOptions::build_dynamic_panel()
     _isBuilding = true;
 
     if (_dynamic_panel != NULL){
+        // Out of the layout now, so the new size does not count it.
+        _container_lay->removeWidget(_dynamic_panel);
+        _dynamic_panel->hide();
         _dynamic_panel->deleteLater();
         _dynamic_panel = NULL;
     }
@@ -851,7 +824,7 @@ void DeviceOptions::build_dynamic_panel()
         box->setVisible(false);
     }
 
-    _dynamic_panel->layout()->setContentsMargins(5, 20, 5, 5);
+    _dynamic_panel->layout()->setContentsMargins(12, 10, 12, 12);
 
     _isBuilding = false;
 }
@@ -860,81 +833,53 @@ void DeviceOptions::try_resize_scroll()
 {
     this->update_font();
 
-    // content area height
-    int contentHeight = _groupHeight1 + _groupHeight2 + 20; // +space
-    //dialog height
-    int dlgHeight = contentHeight + 100; // +bottom buttton
-
-#ifdef Q_OS_DARWIN
-    dlgHeight += 20;
-#endif
-
-    float sk = QGuiApplication::primaryScreen()->logicalDotsPerInch() / 96;
-
-    int srcHeight = 600;
-    int w = _width;
-
-
 #ifdef _WIN32
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
     QFontMetrics fm(font); 
 
     auto labels = this->findChildren<QLabel*>();
-    int max_label_width = 0;
     for(auto o : labels)
     { 
         QRect rc = fm.boundingRect(o->text());
-        QSize size(rc.width() + 15, rc.height());         
-        o->setFixedSize(size);
-
-        if (size.width() > max_label_width){
-            max_label_width = size.width();
-        }
-    }
-
-    if (_device_agent->get_work_mode() == LOGIC
-            && _device_agent->is_demo()){
-        _dynamic_panel->setFixedWidth(max_label_width + 250);
+        o->setFixedSize(QSize(rc.width() + 15, rc.height()));
     }
 #endif
-
-    if (w == 0)
-    {
-        w = this->sizeHint().width();
-        _width = w;
-    }
 
     QScrollArea *scroll = _scroll;
     if (scroll == NULL)
     {
         scroll = new QScrollArea(_scroll_panel);
+        scroll->setWidgetResizable(true);
         scroll->setWidget(_container_panel);
-        scroll->setStyleSheet("QScrollArea{border:none;}");
+        scroll->setFrameShape(QFrame::NoFrame);
+        scroll->setStyleSheet("QScrollArea{border:none;background:transparent;}");
+        scroll->viewport()->setAutoFillBackground(false);
+        _container_panel->setAutoFillBackground(false);
         scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         _scroll = scroll;
     }
 
-    _container_panel->setFixedHeight(contentHeight);
-    int sclw = w - 23;
+    // The content takes its natural size; only when it is taller than most
+    // of the screen it scrolls.
+    _container_lay->activate();
+    QSize content = _container_panel->sizeHint();
+    int maxHeight = 600;
+    if (QScreen *screen = QGuiApplication::primaryScreen())
+        maxHeight = qMax(300, screen->availableGeometry().height() * 7 / 10);
 
-#ifdef Q_OS_DARWIN
-    sclw -= 20;
-#endif
+    int h = qMin(content.height(), maxHeight);
+    int w = content.width();
+    if (content.height() > maxHeight)
+        w += scroll->verticalScrollBar()->sizeHint().width() + 4;
 
-    if (sk * dlgHeight > srcHeight)
-    {
-        int exth = 120;
-        this->setFixedSize(w + 12, srcHeight);
-        _scroll_panel->setFixedSize(w, srcHeight - exth);
-        _scroll->setFixedSize(sclw, srcHeight - exth);
-    }
-    else
-    { 
-        this->setFixedSize(w + 12, dlgHeight);
-        _scroll_panel->setFixedSize(w, contentHeight);
-        _scroll->setFixedSize(sclw, contentHeight);
-    }
+    scroll->setFixedSize(w, h);
+    _scroll_panel->setFixedSize(w, h);
+
+    this->setMinimumSize(0, 0);
+    this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+    this->layout()->activate();
+    this->setFixedSize(this->sizeHint());
 }
 
 void DeviceOptions::keyPressEvent(QKeyEvent *event) 

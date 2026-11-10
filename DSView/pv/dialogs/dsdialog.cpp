@@ -175,7 +175,7 @@ void DSDialog::build_base(bool hasClose)
     _main_layout->addWidget(_titlebar);
 
     _titleSpaceLine = new QWidget(this);
-    _titleSpaceLine->setFixedHeight(15);
+    _titleSpaceLine->setFixedHeight(4);
     _main_layout->addWidget(_titleSpaceLine);
 
     _base_layout = new QVBoxLayout(this);   
@@ -183,7 +183,8 @@ void DSDialog::build_base(bool hasClose)
     setLayout(_base_layout); 
 
     _main_layout->setAlignment(Qt::AlignCenter | Qt::AlignTop);
-    _main_layout->setContentsMargins(10,5,10,10);   
+    _main_layout->setContentsMargins(16,4,16,16);
+    _main_layout->setSpacing(12);
 } 
 
 void DSDialog::update_font()

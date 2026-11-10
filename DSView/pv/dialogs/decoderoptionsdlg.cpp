@@ -33,6 +33,7 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QCheckBox>
+#include <QScrollBar>
 
 #include "../data/decoderstack.h"
 #include "../prop/binding/decoderoptions.h"
@@ -95,7 +96,8 @@ void DecoderOptionsDlg::load_options_view()
 
     QFormLayout *form = new QFormLayout();
     form->setContentsMargins(0, 0, 0, 0);
-    form->setVerticalSpacing(5);
+    form->setVerticalSpacing(8);
+    form->setHorizontalSpacing(12);
     form->setFormAlignment(Qt::AlignLeft);
     form->setLabelAlignment(Qt::AlignLeft);
     dlg->layout()->addLayout(form);
@@ -168,26 +170,11 @@ void DecoderOptionsDlg::load_options_view()
     bool bLang = AppConfig::Instance().appOptions.transDecoderDlg;
 
     if (LangResource::Instance()->is_lang_en() == false){
-        QWidget *sp1 = new QWidget();
-        sp1->setFixedHeight(5);
-        form->addRow(sp1);
         QString trans_lable(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DECODER_IF_TRANS), "Translate param names"));
-        QCheckBox *ck_trans = new QCheckBox();
-        ck_trans->setFixedSize(20,20);
+        QCheckBox *ck_trans = new QCheckBox(trans_lable);
         ck_trans->setChecked(bLang);
         connect(ck_trans, SIGNAL(released()), this, SLOT(on_trans_pramas()));
-        ck_trans->setStyleSheet("margin-top:5px");
-        QLabel *trans_lb = new QLabel(trans_lable);
-        
-        QHBoxLayout *trans_lay = new QHBoxLayout();
-        QWidget *trans_wid = new QWidget();
-        trans_wid->setLayout(trans_lay);
-        trans_lay->setSpacing(0);
-        trans_lay->setContentsMargins(10,0,0,0);
-        trans_lay->addWidget(ck_trans);
-        trans_lay->addWidget(trans_lb);
-        form->addRow("", trans_wid);
-        h_ex2 = 40;   
+        form->addRow(ck_trans);
     }  
 
   //tr
@@ -203,57 +190,40 @@ void DecoderOptionsDlg::load_options_view()
     QDialogButtonBox *button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
                                 Qt::Horizontal, dlg);
 
-    QHBoxLayout *confirm_button_box = new QHBoxLayout;
-    confirm_button_box->addWidget(button_box, 0, Qt::AlignRight);
-    form->addRow(confirm_button_box);
+    form->addItem(new QSpacerItem(0, 4));
+    form->addRow(button_box);
 
     this->update_font();
 
-    int real_content_width = _content_width;
-    int content_height = _contentHeight;
+    (void)h_ex2;
 
-     // scroll     
-    QSize tsize = dlg->sizeHint();
-    int w = tsize.width(); 
-    int other_height = 190 + h_ex2; 
-    content_height += 20;
+    // Natural size; the options scroll only when they would make the
+    // dialog taller than most of the screen.
+    decoder_lay->activate();
+    QSize content = container_panel->sizeHint();
+    content.setWidth(qMax(content.width(), _content_width));
 
-    int cursor_line_width = lb1->sizeHint().width() + _start_comboBox->sizeHint().width();
+    int maxHeight = 400;
+    if (QScreen *screen = QGuiApplication::primaryScreen())
+        maxHeight = qMax(200, screen->availableGeometry().height() * 7 / 10
+                                - (dlg->sizeHint().height() - content.height()));
 
-    if (w < real_content_width){
-        w = real_content_width;
-    }
-    if (w < cursor_line_width){
-        w = cursor_line_width;
-    }
-
-#ifdef Q_OS_DARWIN
-    other_height += 40;
-#endif
-
-    int dlgHeight = content_height + other_height; 
-     
-    float sk = QGuiApplication::primaryScreen()->logicalDotsPerInch() / 96;
-    int srcHeight = 600;
-    container_panel->setFixedHeight(content_height);
-
-    if (dlgHeight * sk > srcHeight)
+    if (content.height() > maxHeight)
     { 
         QScrollArea *scroll = new QScrollArea(scroll_pannel);
+        scroll->setWidgetResizable(true);
         scroll->setWidget(container_panel);
-        scroll->setStyleSheet("QScrollArea{border:none;}");
+        scroll->setFrameShape(QFrame::NoFrame);
+        scroll->setStyleSheet("QScrollArea{border:none;background:transparent;}");
+        scroll->viewport()->setAutoFillBackground(false);
         scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        dlg->setFixedSize(w + 20, srcHeight);
-        scroll_pannel->setFixedSize(w, srcHeight - other_height);
-        int sclw = w - 18;
-#ifdef Q_OS_DARWIN
-        sclw -= 20;
-#endif
-        scroll->setFixedSize(sclw, srcHeight - other_height);
+        int w = content.width() + scroll->verticalScrollBar()->sizeHint().width() + 4;
+        scroll_lay->addWidget(scroll);
+        scroll->setFixedSize(w, maxHeight);
     }
-    else{
-        dlg->setFixedSize(w + 20,dlgHeight);
-    }
+
+    dlg->layout()->activate();
+    dlg->setFixedSize(dlg->sizeHint());
  
     connect(_start_comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(on_region_set(int)));
     connect(_end_comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(on_region_set(int))); 

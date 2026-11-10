@@ -47,11 +47,14 @@ Interval::Interval(QWidget *parent) :
     _interval_slider = new QSlider(Qt::Horizontal, this);
     _interval_slider->setRange(0, 10);
 
-    QGridLayout *glayout = new QGridLayout(this);
+    QGridLayout *glayout = new QGridLayout();
+    glayout->setHorizontalSpacing(10);
+    glayout->setVerticalSpacing(12);
     glayout->addWidget(_interval_label, 0, 0);
     glayout->addWidget(_interval_spinBox, 0, 1);
+    glayout->setColumnStretch(2, 1);
     glayout->addWidget(_interval_slider, 1, 0, 1, 3);
-    glayout->addWidget(&_button_box, 2, 2);
+    glayout->addWidget(&_button_box, 2, 0, 1, 3);
 
     layout()->addLayout(glayout);
     setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_REPETITIVE_INTERVAL), "Repetitive Interval"));
