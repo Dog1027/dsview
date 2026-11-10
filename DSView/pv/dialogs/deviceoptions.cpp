@@ -820,9 +820,9 @@ void DeviceOptions::build_dynamic_panel()
     box->setFont(font);
     box->setTitle(title);
 
-    if (title == ""){ 
-        box->setVisible(false);
-    }
+    // Shown now, not when the layout gets round to it, so that the size
+    // computed right after this (try_resize_scroll) includes the panel.
+    box->setVisible(title != "");
 
     _dynamic_panel->layout()->setContentsMargins(12, 10, 12, 12);
 
