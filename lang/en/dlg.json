@@ -1,5 +1,17 @@
 [
     {
+        "id": "IDS_DLG_FFT_GROUP_SPECTRUM",
+        "text": "Spectrum"
+    },
+    {
+        "id": "IDS_DLG_FFT_GROUP_WINDOW",
+        "text": "Window"
+    },
+    {
+        "id": "IDS_DLG_FFT_GROUP_DISPLAY",
+        "text": "Display"
+    },
+    {
         "id": "IDS_DLG_JUMP_TIME",
         "text": "Time"
     },

@@ -60,6 +60,10 @@ namespace ui
     // (Qt 6.7+). For numbers among labels, e.g. the time ruler.
     QFont tabular_font(const QFont &base);
 
+    // A form label from a language string that ends in ": " (or the
+    // full-width colon): the text without it. Labels have no colon.
+    QString label_text(const QString &s);
+
 } // namespace ui
 
 #endif

@@ -1,5 +1,17 @@
 [
     {
+        "id": "IDS_DLG_FFT_GROUP_SPECTRUM",
+        "text": "频谱"
+    },
+    {
+        "id": "IDS_DLG_FFT_GROUP_WINDOW",
+        "text": "窗函数"
+    },
+    {
+        "id": "IDS_DLG_FFT_GROUP_DISPLAY",
+        "text": "显示"
+    },
+    {
         "id": "IDS_DLG_JUMP_TIME",
         "text": "时间"
     },

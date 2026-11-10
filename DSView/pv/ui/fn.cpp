@@ -203,4 +203,12 @@ namespace ui
         return f;
     }
 
+    QString label_text(const QString &s)
+    {
+        QString t = s.trimmed();
+        if (t.endsWith(':') || t.endsWith(QChar(0xFF1A)))
+            t.chop(1);
+        return t.trimmed();
+    }
+
 } // namespace ui

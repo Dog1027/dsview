@@ -19,6 +19,8 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
+#include <QGroupBox>
+#include "../ui/fn.h"
 #include "fftoptions.h"
 #include <QFormLayout>
 #include <QListWidget>
@@ -192,29 +194,57 @@ FftOptions::FftOptions(QWidget *parent, SigSession *session) :
     QPixmap pixmap(hint_pic);
     _hint_label->setPixmap(pixmap);
 
-    //*
-    _glayout = new QGridLayout();  //QGridLayout
-    _glayout->setVerticalSpacing(5);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FFT_ENABLE), "FFT Enable: "), this), 0, 0);
-    _glayout->addWidget(_en_checkbox, 0, 1);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FFT_LENGTH), "FFT Length: "), this), 1, 0);
-    _glayout->addWidget(_len_combobox, 1, 1);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SAMPLE_INTERVAL), "Sample Interval: "), this), 2, 0);
-    _glayout->addWidget(_interval_combobox, 2, 1);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FFT_SOURCE), "FFT Source: "), this), 3, 0);
-    _glayout->addWidget(_ch_combobox, 3, 1);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FFT_WINDOW), "FFT Window: "), this), 4, 0);
-    _glayout->addWidget(_window_combobox, 4, 1);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DC_IGNORED), "DC Ignored: "), this), 5, 0);
-    _glayout->addWidget(_dc_checkbox, 5, 1);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_Y-AXIS_MODE), "Y-axis Mode: "), this), 6, 0);
-    _glayout->addWidget(_view_combobox, 6, 1);
-    _glayout->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DBV_RANGE), "DBV Range: "), this), 7, 0);
-    _glayout->addWidget(_dbv_combobox, 7, 1);
-    _glayout->addWidget(_hint_label, 0, 2, 8, 1);
+    // Groups with a title, a form inside, as in the other dialogs:
+    // Spectrum and Display on the left, Window (with its shape) right.
+    auto label = [](const char *id, const char *def) {
+        return ::ui::label_text(L_S(STR_PAGE_DLG, id, def));
+    };
+    auto group = [this](const QString &title) {
+        QGroupBox *box = new QGroupBox(title, this);
+        QFormLayout *form = new QFormLayout(box);
+        form->setContentsMargins(12, 10, 12, 12);
+        form->setHorizontalSpacing(12);
+        form->setVerticalSpacing(8);
+        form->setLabelAlignment(Qt::AlignLeft);
+        return std::make_pair(box, form);
+    };
 
+    auto spectrum = group(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FFT_GROUP_SPECTRUM), "Spectrum"));
+    spectrum.second->addRow(label(S_ID(IDS_DLG_FFT_ENABLE), "FFT Enable: "), _en_checkbox);
+    spectrum.second->addRow(label(S_ID(IDS_DLG_FFT_SOURCE), "FFT Source: "), _ch_combobox);
+    spectrum.second->addRow(label(S_ID(IDS_DLG_FFT_LENGTH), "FFT Length: "), _len_combobox);
+    spectrum.second->addRow(label(S_ID(IDS_DLG_SAMPLE_INTERVAL), "Sample Interval: "), _interval_combobox);
+
+    auto display = group(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FFT_GROUP_DISPLAY), "Display"));
+    display.second->addRow(label(S_ID(IDS_DLG_Y-AXIS_MODE), "Y-axis Mode: "), _view_combobox);
+    display.second->addRow(label(S_ID(IDS_DLG_DBV_RANGE), "DBV Range: "), _dbv_combobox);
+
+    auto window = group(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FFT_GROUP_WINDOW), "Window"));
+    window.second->addRow(label(S_ID(IDS_DLG_FFT_WINDOW), "FFT Window: "), _window_combobox);
+    window.second->addRow(label(S_ID(IDS_DLG_DC_IGNORED), "DC Ignored: "), _dc_checkbox);
+    _hint_label->setAlignment(Qt::AlignCenter);
+    window.second->addRow(_hint_label);
+
+    QVBoxLayout *left = new QVBoxLayout();
+    left->setSpacing(12);
+    left->addWidget(spectrum.first);
+    left->addWidget(display.first);
+    left->addStretch(1);
+
+    QVBoxLayout *right = new QVBoxLayout();
+    right->setSpacing(12);
+    right->addWidget(window.first);
+    right->addStretch(1);
+
+    _glayout = new QGridLayout();
+    _glayout->setContentsMargins(0, 0, 0, 0);
+    _glayout->setHorizontalSpacing(12);
+    _glayout->addLayout(left, 0, 0);
+    _glayout->addLayout(right, 0, 1);
 
     _layout = new QVBoxLayout();
+    _layout->setContentsMargins(0, 0, 0, 0);
+    _layout->setSpacing(12);
     _layout->addLayout(_glayout);
     _layout->addWidget(&_button_box);
 
