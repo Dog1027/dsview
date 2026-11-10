@@ -668,12 +668,18 @@ install(FILES DSView/icons/logo.svg DESTINATION share/DSView RENAME logo.svg)
 install(FILES DSView/icons/logo.svg DESTINATION share/icons/hicolor/scalable/apps RENAME dsview.svg)
 install(FILES DSView/icons/logo.svg DESTINATION share/pixmaps RENAME dsview.svg)
 
+# Off for sandboxed builds (Flatpak): they cannot install udev rules,
+# the host needs them instead.
+option(DSVIEW_INSTALL_UDEV_RULES "Install the udev rules for the USB devices" ON)
+
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")	
-	install(FILES DSView/DSView.desktop DESTINATION /usr/share/applications RENAME dsview.desktop)
+	install(FILES DSView/DSView.desktop DESTINATION share/applications RENAME dsview.desktop)
 	
 	add_compile_definitions(_DEFAULT_SOURCE)
 
-	if(IS_DIRECTORY /usr/lib/udev/rules.d)
+	if(NOT DSVIEW_INSTALL_UDEV_RULES)
+		message(STATUS "udev rules: not installed (DSVIEW_INSTALL_UDEV_RULES=OFF)")
+	elseif(IS_DIRECTORY /usr/lib/udev/rules.d)
 		install(FILES DSView/DreamSourceLab.rules DESTINATION /usr/lib/udev/rules.d RENAME 60-dreamsourcelab.rules)
 	elseif(IS_DIRECTORY /lib/udev/rules.d)
 		install(FILES DSView/DreamSourceLab.rules DESTINATION /lib/udev/rules.d RENAME 60-dreamsourcelab.rules)

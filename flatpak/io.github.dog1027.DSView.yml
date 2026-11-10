@@ -1,0 +1,87 @@
+# Flatpak build of DSView (this working tree).
+#
+#   just      (see the justfile and flatpak/README.md)
+#
+# USB devices: the sandbox cannot install udev rules. Install
+# DSView/DreamSourceLab.rules on the host once (see flatpak/README.md).
+
+id: io.github.dog1027.DSView
+runtime: org.kde.Platform
+runtime-version: '6.11'
+sdk: org.kde.Sdk
+command: DSView
+
+rename-desktop-file: dsview.desktop
+rename-icon: dsview
+
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=all            # USB access to the instruments (libusb)
+  - --filesystem=home       # open and save captures anywhere in home
+
+modules:
+  - name: fftw3
+    buildsystem: autotools
+    config-opts:
+      - --enable-shared
+      - --disable-static
+      - --enable-threads
+      - --disable-fortran
+    cleanup:
+      - /bin
+      - /include
+      - /lib/pkgconfig
+      - /lib/cmake
+      - /share/info
+      - /share/man
+      - '*.la'
+    sources:
+      - type: archive
+        url: https://www.fftw.org/fftw-3.3.10.tar.gz
+        sha256: 56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467
+
+  - name: libusb
+    buildsystem: autotools
+    config-opts:
+      - --disable-static
+      - --disable-udev       # no udev daemon in the sandbox; netlink hotplug
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+      - '*.la'
+    sources:
+      - type: archive
+        url: https://github.com/libusb/libusb/releases/download/v1.0.29/libusb-1.0.29.tar.bz2
+        sha256: 5977fc950f8d1395ccea9bd48c06b3f808fd3c2c961b44b0c2e6e29fc3a70a85
+
+  # DSView only uses header-only parts of Boost (bind, function, optional).
+  # Copy the headers; they are removed from the final app.
+  - name: boost
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/include
+      - cp -r boost /app/include/
+    cleanup:
+      - /include
+    sources:
+      - type: archive
+        url: https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.bz2
+        sha256: 85a33fa22621b4f314f8e85e1a5e2a9363d22e4f4992925d4bb3bc631b5a0c7a
+
+  - name: dsview
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DDSVIEW_INSTALL_UDEV_RULES=OFF
+      - -DCMAKE_POLICY_VERSION_MINIMUM=3.5   # CMakeLists asks for 2.8; CMake 4 refuses
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - build
+          - build.dir
+          - build-flatpak
+          - .flatpak-builder
