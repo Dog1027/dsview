@@ -1137,7 +1137,30 @@ QToolButton#CloseButton:hover, QToolButton#CloseButton::menu-button:hover {
     background-color: @close-hover;
 }
 
-/* Window title bar (main window and dialogs), VS Code style */
+/* Linux: GNOME/Adwaita-like round window buttons (see titlebar.cpp) */
+QToolButton#MinimizeButton[round="true"],
+QToolButton#MaximizeButton[round="true"],
+QToolButton#CloseButton[round="true"]
+{
+    background-color: @window-button;
+    border-radius: 12px;
+}
+
+QToolButton#MinimizeButton[round="true"]:hover,
+QToolButton#MaximizeButton[round="true"]:hover,
+QToolButton#CloseButton[round="true"]:hover
+{
+    background-color: @window-button-hover;
+}
+
+QToolButton#MinimizeButton[round="true"]:pressed,
+QToolButton#MaximizeButton[round="true"]:pressed,
+QToolButton#CloseButton[round="true"]:pressed
+{
+    background-color: @window-button-pressed;
+}
+
+/* Window title bar (main window and dialogs) */
 QWidget#TitleBar
 {
     background-color: @chrome;
@@ -1635,4 +1658,67 @@ QLabel#SampleAtLabel
 {
     color: @text-muted;
     margin: 0px 2px;
+}
+
+
+/* ================================================================
+ * Activity bar: vertical strip at the right edge that switches the
+ * side panels. Its items: ACTIVITY_BAR_LAYOUT in topbarlayout.h.
+ * ================================================================ */
+QToolBar#activity_bar
+{
+    background-color: @chrome;
+    border: none;
+    border-left: 1px solid @divider;
+    padding: 4px 0px;
+    spacing: 0px;
+}
+
+QToolBar#activity_bar QToolBar
+{
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+    spacing: 2px;
+}
+
+QToolBar#activity_bar QToolButton,
+QToolBar#activity_bar QToolButton[popupMode="1"],
+QToolBar#activity_bar QToolButton[popupMode="2"]
+{
+    border: none;
+    border-left: 2px solid transparent;
+    border-radius: 0px;
+    margin: 0px;
+    padding: 9px 10px 9px 8px;
+}
+
+QToolBar#activity_bar QToolButton:hover
+{
+    background-color: @hover;
+}
+
+/* the open panel */
+QToolBar#activity_bar QToolButton:checked
+{
+    background-color: transparent;
+    border-left-color: @accent;
+}
+
+QToolBar#activity_bar QToolButton:checked:hover
+{
+    background-color: @hover;
+}
+
+QToolBar#activity_bar QToolButton::menu-indicator
+{
+    image: none;
+    width: 0px;
+}
+
+QToolBar#activity_bar QToolBar::separator:vertical
+{
+    background-color: @divider;
+    height: 1px;
+    margin: 6px 10px;
 }

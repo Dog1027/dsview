@@ -30,10 +30,11 @@ Every save of `theme.qss` or a palette is applied to the running program.
 (The icons in `dark/` and `light/` are still read from the compiled
 resources, so changes to them need a rebuild.)
 
-Top toolbar layout
-------------------
+Toolbar layout
+--------------
 
-Which buttons appear in the top toolbar, their order, grouping and whether
-they show text is defined in `DSView/pv/toolbars/topbarlayout.h`.
-Its look (padding, the blue Start button, ...) is the "Main top bar"
-section at the end of `theme.qss`.
+Which buttons appear in the top toolbar and in the activity bar (the
+vertical strip at the right edge that switches the side panels), their
+order, grouping and whether they show text is defined in
+`DSView/pv/toolbars/topbarlayout.h`. Their look is the "Main top bar" and
+"Activity bar" sections at the end of `theme.qss`.

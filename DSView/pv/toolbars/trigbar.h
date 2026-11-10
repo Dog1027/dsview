@@ -57,6 +57,11 @@ private:
     DockOptions* getDockOptions();
     void update_checked_status();
 
+    // The side panels (trigger, decode, measure) share the space at the
+    // right: opening one closes the others.
+    enum Panel { PanelTrigger, PanelDecode, PanelMeasure };
+    void close_other_panels(Panel keep);
+
      //IUiWindow
     void UpdateLanguage() override;
     void UpdateTheme() override;

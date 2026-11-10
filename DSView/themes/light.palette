@@ -31,6 +31,9 @@
 @danger:         #e55765;
 @danger-hover:   #f07b86;
 @close-hover:    #e81123;
+@window-button:         #e6e6e6;   /* round window buttons (Linux) */
+@window-button-hover:   #dadada;
+@window-button-pressed: #cccccc;
 
 /* icon set used in url(...) */
 @icons:          :/light;

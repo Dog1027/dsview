@@ -195,8 +195,16 @@ namespace pv
 
 
         // Top bar: the items of the four toolbars, arranged by topbarlayout.h
+        // The side panels are switched from the activity bar at the right
+        // edge; it takes its items first, the top bar gets the rest.
+        QList<toolbars::ToolbarItemSource*> sources = {_sampling_bar, _trig_bar, _file_bar, _logo_bar};
+
+        toolbars::TopBar *activity_bar = new toolbars::TopBar(this, "activity_bar", Qt::Vertical, 24);
+        activity_bar->build(sources, ACTIVITY_BAR_LAYOUT, QSet<QString>(), false);
+        addToolBar(Qt::RightToolBarArea, activity_bar);
+
         toolbars::TopBar *top_bar = new toolbars::TopBar(this);
-        top_bar->build({_sampling_bar, _trig_bar, _file_bar, _logo_bar}, TOP_BAR_LAYOUT);
+        top_bar->build(sources, TOP_BAR_LAYOUT, activity_bar->placed());
         addToolBar(top_bar);
 
         // Setup the dockWidget

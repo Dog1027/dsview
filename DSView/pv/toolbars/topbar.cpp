@@ -19,7 +19,7 @@
 
 #include "topbar.h"
 
-#include <QHBoxLayout>
+#include <QBoxLayout>
 #include <QWidgetAction>
 #include <QToolButton>
 #include <QToolTip>
@@ -34,10 +34,12 @@
 namespace pv {
 namespace toolbars {
 
-TopBar::TopBar(QWidget *parent)
-    : QToolBar("Main Bar", parent)
+TopBar::TopBar(QWidget *parent, const QString &name, Qt::Orientation orientation, int iconSize)
+    : QToolBar(name, parent)
 {
-    setObjectName("main_bar");
+    setObjectName(name);
+    setOrientation(orientation);
+    _icon_size = iconSize;
     setMovable(false);
     setFloatable(false);
     toggleViewAction()->setVisible(false);
@@ -45,7 +47,8 @@ TopBar::TopBar(QWidget *parent)
 
     _row = new QWidget(this);
     _row->setObjectName("main_bar_row");
-    _row_layout = new QHBoxLayout(_row);
+    _row_layout = new QBoxLayout(orientation == Qt::Horizontal
+                                    ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom, _row);
     _row_layout->setContentsMargins(0, 0, 0, 0);
     _row_layout->setSpacing(0);
     addWidget(_row);
@@ -62,24 +65,28 @@ QToolBar* TopBar::add_group(const QString &name, bool fixed)
 {
     QToolBar *group = new QToolBar(name, _row);
     group->setObjectName("group_" + name);
+    group->setOrientation(orientation());
     group->setMovable(false);
     group->setFloatable(false);
-    group->setIconSize(QSize(20, 20));
+    group->setIconSize(QSize(_icon_size, _icon_size));
     if (fixed)
         group->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     _row_layout->addWidget(group);
     return group;
 }
 
-void TopBar::build(const QList<ToolbarItemSource*> &sources, const char *layout)
+void TopBar::build(const QList<ToolbarItemSource*> &sources, const char *layout,
+                   const QSet<QString> &taken, bool hide_rest)
 {
     QMap<QString, ToolbarItem> items;
-    QSet<QString> placed;
+    QSet<QString> &placed = _placed;
 
     for (ToolbarItemSource *src : sources)
     {
         for (const ToolbarItem &item : src->items())
         {
+            if (taken.contains(item.id))
+                continue;
             if (items.contains(item.id))
                 dsv_err("TopBar: duplicate item id \"%s\"", item.id.toUtf8().data());
             items[item.id] = item;
@@ -165,7 +172,7 @@ void TopBar::build(const QList<ToolbarItemSource*> &sources, const char *layout)
     QToolBar *unused = NULL;
     for (const ToolbarItem &item : items)
     {
-        if (placed.contains(item.id))
+        if (!hide_rest || placed.contains(item.id))
             continue;
         if (unused == NULL)
         {

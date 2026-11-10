@@ -22,7 +22,8 @@
 
 /*
  * ===================================================================
- *  Layout of the top toolbar. Edit this to rearrange the toolbar.
+ *  Layout of the top toolbar and of the activity bar (the vertical
+ *  strip at the right edge). Edit these to rearrange the toolbars.
  * ===================================================================
  *
  *  [name]        start a group. Each group shrinks into its own » menu
@@ -31,10 +32,12 @@
  *  id            place an item, shown as icon + text.
  *  id:icon       place an item, icon only (its text becomes the tooltip).
  *  |             separator line inside a group.
- *  ->            everything after this is pushed to the right edge.
+ *  ->            everything after this is pushed to the far end
+ *                (right edge of the top bar, bottom of the activity bar).
  *  # ...         comment.
  *
- *  Available items (any item can go in any group; items left out are hidden):
+ *  Available items (any item can go in any group of either bar; an item can
+ *  only be placed once; items left out are hidden):
  *
  *    device_type    device kind indicator (USB 2.0 / Demo / File)
  *    device         device selector
@@ -45,16 +48,17 @@
  *    mode           single / repetitive / loop
  *    start          start / stop capture
  *    instant        instant capture
- *    trigger        trigger dock
- *    decode         protocol decoder dock
- *    measure        measurement dock
- *    search         search bar
+ *    trigger        trigger panel
+ *    decode         protocol decoder panel
+ *    measure        measurement panel
+ *    search         search bar (below the waveform)
  *    function       FFT / math (oscilloscope mode only)
  *    display        display options, theme
  *    file           file menu
  *    help           language, about, manual, log
  *
- *  Look of the groups/items: DSView/themes/theme.qss ("Main top bar").
+ *  Look of the groups/items: DSView/themes/theme.qss ("Main top bar",
+ *  "Activity bar"). In the activity bar every item is shown icon only.
  */
 static const char *const TOP_BAR_LAYOUT = R"LAYOUT(
 
@@ -66,14 +70,30 @@ static const char *const TOP_BAR_LAYOUT = R"LAYOUT(
         mode:icon  start  instant
 
     [tools]
-        trigger  decode  measure  search  function:icon
-        |
-        display:icon
+        function:icon
 
     ->
 
     [app fixed]
         file:icon  help:icon
+
+)LAYOUT";
+
+/*
+ * Activity bar: the side panels. Only one of trigger / decode / measure is
+ * open at a time (clicking the open one closes it); search is independent.
+ */
+static const char *const ACTIVITY_BAR_LAYOUT = R"LAYOUT(
+
+    [panels]
+        trigger:icon  decode:icon  measure:icon
+        |
+        search:icon
+
+    ->
+
+    [settings]
+        display:icon
 
 )LAYOUT";
 

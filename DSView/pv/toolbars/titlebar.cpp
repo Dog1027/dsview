@@ -63,31 +63,48 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
 
     setObjectName("TitleBar");
     setContentsMargins(0,0,0,0);
-    // VS Code like: 35px for the main window, a bit less for dialogs.
+    // 35px for the main window, a bit less for dialogs.
     const int barHeight = top ? 35 : 32;
-    const int buttonWidth = 46;
-    setFixedHeight(barHeight);
+
+    // Window buttons. On Windows: wide, full-height buttons (red close).
+    // Elsewhere: GNOME/Adwaita-like small round buttons, as VS Code shows
+    // them on Linux. Their look is in theme.qss ("Window title bar").
+#ifdef _WIN32
+    const QSize buttonSize(46, barHeight);
+    const int buttonGap = 0;
+    const int rightMargin = 0;
+    const bool roundButtons = false;
+#else
+    const QSize buttonSize(24, 24);
+    const int buttonGap = 10;
+    const int rightMargin = (barHeight - 24) / 2 + 2;
+    const bool roundButtons = true;
+#endif
 
     QHBoxLayout *lay1 = new QHBoxLayout(this);
+    lay1->setContentsMargins(0, 0, 0, 0);
+    lay1->setSpacing(0);
 
     _title = new QLabel(this);
-    lay1->addWidget(_title);
+
+    QHBoxLayout *buttonLay = new QHBoxLayout();
+    buttonLay->setContentsMargins(0, 0, rightMargin, 0);
+    buttonLay->setSpacing(buttonGap);
+
+    auto setupButton = [&](QToolButton *bt, const char *name) {
+        bt->setObjectName(name);
+        bt->setProperty("round", roundButtons);
+        bt->setFixedSize(buttonSize);
+        bt->setIconSize(QSize(16, 16));
+        bt->setFocusPolicy(Qt::NoFocus);
+        buttonLay->addWidget(bt, 0, Qt::AlignVCenter);
+    };
 
     if (_isTop) {
         _minimizeButton = new QToolButton(this);
-        _minimizeButton->setObjectName("MinimizeButton");
         _maximizeButton = new QToolButton(this);
-        _maximizeButton->setObjectName("MaximizeButton");
-
-        _minimizeButton->setFixedSize(buttonWidth, barHeight);
-        _maximizeButton->setFixedSize(buttonWidth, barHeight);
-        _minimizeButton->setIconSize(QSize(16, 16));
-        _maximizeButton->setIconSize(QSize(16, 16));
-        _minimizeButton->setFocusPolicy(Qt::NoFocus);
-        _maximizeButton->setFocusPolicy(Qt::NoFocus);
-
-        lay1->addWidget(_minimizeButton);
-        lay1->addWidget(_maximizeButton);
+        setupButton(_minimizeButton, "MinimizeButton");
+        setupButton(_maximizeButton, "MaximizeButton");
 
         connect(this, SIGNAL(normalShow()), parent, SLOT(showNormal()));
         connect(this, SIGNAL( maximizedShow()), parent, SLOT(showMaximized()));
@@ -97,23 +114,22 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
 
     if (_isTop || _hasClose) {
         _closeButton= new QToolButton(this);
-        _closeButton->setObjectName("CloseButton");
-        _closeButton->setFixedSize(buttonWidth, barHeight);
-        _closeButton->setIconSize(QSize(16, 16));
-        _closeButton->setFocusPolicy(Qt::NoFocus);
-        lay1->addWidget(_closeButton);
+        setupButton(_closeButton, "CloseButton");
         connect(_closeButton, SIGNAL( clicked()), parent, SLOT(close()));
     }
 
-    lay1->insertStretch(0, 500);
-    lay1->insertStretch(2, 500);
-
     // Reserve on the left as much as the buttons take on the right, so the
     // title is centred on the window (and the logo has room).
-    int buttons = (_isTop ? 3 : 0) + (!_isTop && _hasClose ? 1 : 0);
-    lay1->insertSpacing(0, qMax(48, buttons * buttonWidth));
-    lay1->setContentsMargins(0,0,0,0);
-    lay1->setSpacing(0);
+    int buttons = (_minimizeButton ? 1 : 0) + (_maximizeButton ? 1 : 0) + (_closeButton ? 1 : 0);
+    int buttonsWidth = buttons > 0
+        ? buttons * buttonSize.width() + (buttons - 1) * buttonGap + rightMargin : 0;
+
+    lay1->addSpacing(qMax(48, buttonsWidth));
+    lay1->addStretch(500);
+    lay1->addWidget(_title);
+    lay1->addStretch(500);
+    lay1->addSpacing(qMax(0, 48 - buttonsWidth));
+    lay1->addLayout(buttonLay);
 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed); 
     

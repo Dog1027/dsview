@@ -175,6 +175,8 @@ void TrigBar::protocol_clicked()
     {
         DockOptions *opt = getDockOptions();
         opt->decodeDock = !opt->decodeDock;
+        if (opt->decodeDock)
+            close_other_panels(PanelDecode);
         sig_protocol(opt->decodeDock);
         AppConfig::Instance().SaveFrame();
 
@@ -188,6 +190,8 @@ void TrigBar::trigger_clicked()
     {
         DockOptions *opt = getDockOptions();
         opt->triggerDock = !opt->triggerDock;
+        if (opt->triggerDock)
+            close_other_panels(PanelTrigger);
         sig_trigger(opt->triggerDock);
         AppConfig::Instance().SaveFrame();
 
@@ -201,6 +205,8 @@ void TrigBar::measure_clicked()
     {
         DockOptions *opt = getDockOptions();
         opt->measureDock = !opt->measureDock;
+        if (opt->measureDock)
+            close_other_panels(PanelMeasure);
         sig_measure(opt->measureDock);
         AppConfig::Instance().SaveFrame();
 
@@ -219,6 +225,24 @@ void TrigBar::search_clicked()
 
         update_checked_status();
     }  
+}
+
+void TrigBar::close_other_panels(Panel keep)
+{
+    DockOptions *opt = getDockOptions();
+
+    if (keep != PanelDecode && opt->decodeDock){
+        opt->decodeDock = false;
+        sig_protocol(false);
+    }
+    if (keep != PanelTrigger && opt->triggerDock){
+        opt->triggerDock = false;
+        sig_trigger(false);
+    }
+    if (keep != PanelMeasure && opt->measureDock){
+        opt->measureDock = false;
+        sig_measure(false);
+    }
 }
 
 void TrigBar::reload()
@@ -259,6 +283,20 @@ void TrigBar::reload()
     bool bTrigger = _trig_action->isVisible() && opt->triggerDock;
     bool bMeasure = _measure_action->isVisible() && opt->measureDock;
     bool bSearch = _search_action->isVisible() && opt->searchDock;
+
+    // Older settings may have several side panels open: keep only one.
+    if (bDecoder){
+        bTrigger = bMeasure = false;
+    }
+    else if (bTrigger){
+        bMeasure = false;
+    }
+    if (_protocol_action->isVisible())
+        opt->decodeDock = bDecoder;
+    if (_trig_action->isVisible())
+        opt->triggerDock = bTrigger;
+    if (_measure_action->isVisible())
+        opt->measureDock = bMeasure;
 
     sig_protocol(bDecoder);
     sig_trigger(bTrigger);
