@@ -472,6 +472,11 @@ void View::show_trig_cursor(bool show)
     viewport_update();
 }
 
+bool View::search_cursor_shown()
+{
+    return _show_search_cursor && _session->have_view_data();
+}
+
 void View::show_search_cursor(bool show)
 {
     _show_search_cursor = show;

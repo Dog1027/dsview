@@ -184,9 +184,8 @@ public:
         return _show_trig_cursor;
     }
 
-    inline bool search_cursor_shown(){
-        return _show_search_cursor;
-    }
+    // The search marker only means something once there is data to search.
+    bool search_cursor_shown();
 
     inline int get_spanY(){
         return _spanY;

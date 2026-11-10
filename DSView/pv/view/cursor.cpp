@@ -74,6 +74,12 @@ QRect Cursor::get_label_rect(const QRect &rect, bool &visible, bool has_hoff)
     return QRect(x - label_size.width() / 2, top, label_size.width(), height);
 }
 
+QRect Cursor::get_label_rect(QPainter &p, const QRect &rect, bool &visible, bool has_hoff)
+{
+    compute_text_size(p, 0);
+    return get_label_rect(rect, visible, has_hoff);
+}
+
 QRect Cursor::get_close_rect(const QRect &rect)
 {
     return QRect(rect.right() - CloseSize, rect.top(), CloseSize, CloseSize);

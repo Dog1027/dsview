@@ -68,6 +68,9 @@ public:
 
     QRect get_close_rect(const QRect &rect);
 
+    // The label rectangle as painted with p (its size depends on the font).
+    QRect get_label_rect(QPainter &p, const QRect &rect, bool &visible, bool has_hoff);
+
 	/**
 	 * Paints the cursor's label to the ruler.
 	 * @param p The painter to draw with.

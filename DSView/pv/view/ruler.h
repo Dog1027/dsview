@@ -25,6 +25,7 @@
 #define DSVIEW_PV_VIEW_RULER_H
 
 #include <QWidget>
+#include <vector>
 #include <stdint.h>
 
 #define CURSOR_HSB_COLOR_TABLE_LENGTH   22
@@ -82,6 +83,7 @@ private:
     void leaveEvent(QEvent *);
 
 private:
+    std::vector<QRect> marker_label_rects(QPainter &p);
     void draw_logic_tick_mark(QPainter &p);
     void draw_osc_tick_mark(QPainter &p);
 	/**
