@@ -28,6 +28,7 @@
 #include <QComboBox>
 #include <QTabBar>
 #include <QDialogButtonBox>
+#include <QPushButton>
 
 class MyStyle : public QProxyStyle
 {
@@ -72,6 +73,17 @@ class MyStyle : public QProxyStyle
             || qobject_cast<QComboBox*>(widget) != nullptr
             || qobject_cast<QTabBar*>(widget) != nullptr) {
             widget->setCursor(Qt::PointingHandCursor);
+        }
+
+        // Cancel / No in a button box: red (QPushButton[role="reject"]
+        // in theme.qss). The role is known here: polish runs on show.
+        if (QPushButton *pb = qobject_cast<QPushButton*>(widget)) {
+            if (QDialogButtonBox *box = qobject_cast<QDialogButtonBox*>(pb->parentWidget())) {
+                const QDialogButtonBox::ButtonRole role = box->buttonRole(pb);
+                const bool reject = role == QDialogButtonBox::RejectRole
+                                 || role == QDialogButtonBox::NoRole;
+                pb->setProperty("role", reject ? "reject" : "");
+            }
         }
 
         QProxyStyle::polish(widget);
