@@ -1645,6 +1645,8 @@ void Viewport::measure()
                 if (_action_type == NO_ACTION) {
                     if (logicSig->measure(_mouse_point, _cur_sample, _nxt_sample, _thd_sample)) {
                         _measure_type = LOGIC_FREQ;
+                        _mm_name = logicSig->get_name();
+                        _mm_colour = logicSig->wave_colour(QColor());
 
                         _mm_width = _view.get_ruler()->format_real_time(_nxt_sample - _cur_sample, sample_rate);
                         _mm_period = _thd_sample != 0 ? _view.get_ruler()->format_real_time(_thd_sample - _cur_sample, sample_rate) : View::Unknown_Str;
@@ -1738,9 +1740,107 @@ void Viewport::measure()
     measure_updated();
 }
 
+// The floating measurement next to the mouse: a small card like a tooltip
+// (@surface, @border, radius 8), channel in its colour as the title,
+// names muted on the left, values on the right.
+void Viewport::paintMeasureCard(QPainter &p)
+{
+    const ui::Theme &theme = ui::Theme::Instance();
+    const QColor surface = theme.color("surface", QColor(49, 49, 49));
+    const QColor border = theme.color("border", QColor(70, 70, 70));
+    const QColor text = theme.color("text", QColor(204, 204, 204));
+    const QColor muted = theme.color("text-muted", QColor(150, 150, 150));
+
+    auto name = [](const QString &s) {
+        QString t = s.trimmed();
+        if (t.endsWith(':') || t.endsWith(QChar(0xFF1A)))
+            t.chop(1);
+        return t.trimmed();
+    };
+    const QString names[] = {
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_WIDTH), "Width: ")),
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PERIOD), "Period: ")),
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FREQUENCY), "Frequency: ")),
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DUTY_CYCLE), "Duty Cycle: ")),
+    };
+    // Spans are never negative: no "+" in front.
+    auto unsigned_str = [](QString v) {
+        if (v.startsWith('+'))
+            v.remove(0, 1);
+        return v;
+    };
+    const QString values[] = { unsigned_str(_mm_width), unsigned_str(_mm_period), _mm_freq, _mm_duty };
+
+    p.save();
+    QFont title_font = p.font();
+    title_font.setWeight(QFont::DemiBold);
+    const QFontMetrics fm(p.font());
+    const QFontMetrics tfm(title_font);
+
+    const int pad_h = 12, pad_v = 8, col_gap = 16, row_gap = 2;
+    const int line_h = fm.height();
+    int name_w = 0, value_w = 0;
+    for (int i = 0; i < 4; i++){
+        name_w = std::max(name_w, fm.horizontalAdvance(names[i]));
+        value_w = std::max(value_w, fm.horizontalAdvance(values[i]));
+    }
+    const int dot = 8;
+    const bool has_title = !_mm_name.isEmpty();
+    const int title_h = has_title ? tfm.height() + 4 : 0;
+    const int w = pad_h * 2 + std::max(name_w + col_gap + value_w,
+                                       dot + 6 + tfm.horizontalAdvance(_mm_name));
+    const int h = pad_v * 2 + title_h + 4 * line_h + 3 * row_gap;
+
+    // Below right of the pointer; flipped where it would leave the view.
+    const int off = 14;
+    const QPoint hp = _view.hover_point();
+    int x = hp.x() + off;
+    int y = hp.y() + off;
+    if (x + w > _view.get_view_width())
+        x = hp.x() - off - w;
+    if (y + h > height())
+        y = hp.y() - off - h;
+    x = std::max(2, x);
+    y = std::max(2, y);
+
+    const QRectF card(x + 0.5, y + 0.5, w, h);
+    p.setRenderHint(QPainter::Antialiasing, true);
+    p.setPen(border);
+    p.setBrush(surface);
+    p.drawRoundedRect(card, 8, 8);
+
+    int ty = y + pad_v;
+    if (has_title){
+        QColor c = _mm_colour.isValid() ? _mm_colour : text;
+        p.setPen(Qt::NoPen);
+        p.setBrush(c);
+        p.drawEllipse(QRectF(x + pad_h, ty + (tfm.height() - dot) / 2.0, dot, dot));
+        p.setFont(title_font);
+        p.setPen(text);
+        p.drawText(QRect(x + pad_h + dot + 6, ty, w, tfm.height()),
+                   Qt::AlignLeft | Qt::AlignVCenter, _mm_name);
+        ty += title_h;
+    }
+
+    QFont body = title_font;
+    body.setWeight(QFont::Normal);
+    p.setFont(body);
+    for (int i = 0; i < 4; i++){
+        const QRect row(x + pad_h, ty, w - 2 * pad_h, line_h);
+        p.setPen(muted);
+        p.drawText(row, Qt::AlignLeft | Qt::AlignVCenter, names[i]);
+        p.setPen(text);
+        p.drawText(row, Qt::AlignRight | Qt::AlignVCenter, values[i]);
+        ty += line_h + row_gap;
+    }
+    p.restore();
+}
+
 void Viewport::paintMeasure(QPainter &p, QColor fore, QColor back)
 {
-    QColor active_color = back.black() > 0x80 ? View::Orange : View::Purple;
+    (void)back;
+    // Measured span arrows: bright text colour, readable over any channel.
+    QColor active_color = ui::Theme::Instance().color("text-bright", View::Orange);
     _hover_hit = false;
     if (_action_type == NO_ACTION &&
         _measure_type == LOGIC_FREQ) {
@@ -1758,44 +1858,8 @@ void Viewport::paintMeasure(QPainter &p, QColor fore, QColor back)
             p.drawLine(QLineF(_cur_thdX - 2, _cur_midY + 2, _cur_thdX, _cur_midY));
         }
 
-        if (_measure_en) {
-            int typical_width = p.boundingRect(0, 0, INT_MAX, INT_MAX,
-                Qt::AlignLeft | Qt::AlignTop, _mm_width).width();
-            typical_width = max(typical_width, p.boundingRect(0, 0, INT_MAX, INT_MAX,
-                Qt::AlignLeft | Qt::AlignTop, _mm_period).width());
-            typical_width = max(typical_width, p.boundingRect(0, 0, INT_MAX, INT_MAX,
-                Qt::AlignLeft | Qt::AlignTop, _mm_freq).width());
-            typical_width = max(typical_width, p.boundingRect(0, 0, INT_MAX, INT_MAX,
-                Qt::AlignLeft | Qt::AlignTop, _mm_duty).width());
-            typical_width = typical_width + 100;
-
-            const double width = _view.get_view_width();
-            const double height = _view.viewport()->height();
-            const double left = _view.hover_point().x();
-            const double top = _view.hover_point().y();
-            const double right = left + typical_width;
-            const double bottom = top + 80;
-            QPointF org_pos = QPointF(right > width ? left - typical_width : left, bottom > height ? top - 80 : top);
-            QRectF measure_rect = QRectF(org_pos.x(), org_pos.y(), (double)typical_width, 80.0);
-            QRectF measure1_rect = QRectF(org_pos.x(), org_pos.y(), (double)typical_width, 20.0);
-            QRectF measure2_rect = QRectF(org_pos.x(), org_pos.y()+20, (double)typical_width, 20.0);
-            QRectF measure3_rect = QRectF(org_pos.x(), org_pos.y()+40, (double)typical_width, 20.0);
-            QRectF measure4_rect = QRectF(org_pos.x(), org_pos.y()+60, (double)typical_width, 20.0);
-
-            p.setPen(Qt::NoPen);
-            p.setBrush(View::LightBlue);
-            p.drawRect(measure_rect);
-
-            p.setPen(active_color);
-            p.drawText(measure1_rect, Qt::AlignRight | Qt::AlignVCenter,
-                       L_S(STR_PAGE_DLG, S_ID(IDS_DLG_WIDTH), "Width: ") + _mm_width);
-            p.drawText(measure2_rect, Qt::AlignRight | Qt::AlignVCenter,
-                       L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PERIOD), "Period: ") + _mm_period);
-            p.drawText(measure3_rect, Qt::AlignRight | Qt::AlignVCenter,
-                       L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FREQUENCY), "Frequency: ") + _mm_freq);
-            p.drawText(measure4_rect, Qt::AlignRight | Qt::AlignVCenter,
-                      L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DUTY_CYCLE), "Duty Cycle: ") + _mm_duty);
-        }
+        if (_measure_en)
+            paintMeasureCard(p);
     } 
 
     if (_action_type == NO_ACTION &&

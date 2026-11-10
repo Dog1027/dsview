@@ -144,6 +144,7 @@ private:
 
     void paintSignals(QPainter& p, QColor fore, QColor back);
     void paintHoverRow(QPainter &p, std::vector<Trace*> &traces);
+    void paintMeasureCard(QPainter &p);
     void paintProgress(QPainter& p, QColor fore, QColor back);
     void paintMeasure(QPainter &p, QColor fore, QColor back);
     void paintCursors(QPainter &p);
@@ -202,6 +203,8 @@ private:
     QString     _mm_period;
     QString     _mm_freq;
     QString     _mm_duty;
+    QString     _mm_name;      // channel under the floating measurement
+    QColor      _mm_colour;
 
     uint64_t    _edge_rising;
     uint64_t    _edge_falling;

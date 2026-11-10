@@ -209,6 +209,10 @@ Waveforms, the ruler, channel rows and cursors are painted in C++.
   (wheel over the names, Shift + wheel over the waves).
 - The row under the mouse (over the waves or its name) gets a faint
   `@hover` band (`Viewport::paintHoverRow`).
+- Floating measurement (logic): a card like a menu (`@surface`,
+  `@border`, radius 8) 14 px below right of the pointer, flipped at the
+  view edges; title = channel name with its colour dot, names
+  `@text-muted` left, values `@text` right (`Viewport::paintMeasureCard`).
 - Leave room for labels at both ends of the time axis (`View::edge_pad`).
   Code that turns view pixels into sample indexes must cope with the
   negative offset there.
