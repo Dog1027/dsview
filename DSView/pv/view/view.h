@@ -85,6 +85,9 @@ private:
     static const int MinDecoderRowHeight;
 
 public:
+    // The work mode selector; MainWindow puts it in the top bar.
+    DevMode* get_devmode(){ return _devmode; }
+
     //static const int SignalHeight;
 	static const int SignalMargin;
 	static const int SignalSnapGridSize;
@@ -472,7 +475,7 @@ private:
     std::map<int, int>      _trace_view_map;
 	Ruler                   *_ruler;
 	Header                  *_header;
-    DevMode                 *_devmode;
+    DevMode                 *_devmode;   // placed in the top bar ("work_mode")
     
 
 	/// The view time scale in seconds per pixel.

@@ -58,17 +58,15 @@ DevMode::DevMode(QWidget *parent, SigSession *session) :
     _device_agent = session->get_device();
 
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setSpacing(0);
-    layout->setContentsMargins(2, 0, 0, 0);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(4);
 
     _close_button = new XToolButton();
     _close_button->setObjectName("FileCloseButton");
     _close_button->setContentsMargins(0, 0, 0, 0);
-    _close_button->setFixedWidth(10);
-    _close_button->setFixedHeight(height());
     _close_button->setIconSize(QSize(10, 10));
-    _close_button->setToolButtonStyle(Qt::ToolButtonIconOnly); 
-    _close_button->setMinimumWidth(10);
+    _close_button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    _close_button->setVisible(false);   // only for a file
 
     _mode_btn = new XToolButton();
     _mode_btn->setObjectName("ModeButton");
@@ -77,7 +75,6 @@ DevMode::DevMode(QWidget *parent, SigSession *session) :
     _mode_btn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     _mode_btn->setContentsMargins(0, 0, 0, 0);  
     _mode_btn->setPopupMode(QToolButton::InstantPopup);
-    _mode_btn->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
 
    // _mode_btn->setArrowType(Qt::NoArrow);
 
@@ -88,7 +85,6 @@ DevMode::DevMode(QWidget *parent, SigSession *session) :
     layout->addWidget(_close_button);
     layout->addWidget(_mode_btn); 
 
-    layout->setStretch(1, 100); 
     setLayout(layout);
 
     connect(_close_button, SIGNAL(clicked()), this, SLOT(on_close()));
@@ -120,7 +116,8 @@ void DevMode::set_device()
     _mode_list.clear();
 
     _close_button->setIcon(QIcon());
-    _close_button->setDisabled(true); 
+    _close_button->setDisabled(true);
+    _close_button->setVisible(false);
 
     QString iconPath = GetIconPath() + "/";
     auto dev_mode_list  = _device_agent->get_device_mode_list();
@@ -165,9 +162,12 @@ void DevMode::set_device()
 
     if (_device_agent->is_file()){
         _close_button->setDisabled(false);
+        _close_button->setVisible(true);
         _close_button->setIcon(QIcon(iconPath + "/close.svg"));
         _bFile = true;
     }
+
+    _close_button->setToolTip(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_CLOSE_FILE), "Close File"));
 
     UpdateFont();
     update();    

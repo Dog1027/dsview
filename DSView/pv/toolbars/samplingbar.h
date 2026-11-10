@@ -78,6 +78,9 @@ namespace pv
 
         public:
             SamplingBar(SigSession *session, QWidget *parent);
+
+            // The work mode selector (owned by the View) as item "work_mode".
+            void add_mode_item(QWidget *w){ add_item("work_mode", w); }
             ~SamplingBar();    
 
             double hori_knob(int dir);           

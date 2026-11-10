@@ -76,6 +76,7 @@
 #include "dock/protocoldock.h"
 
 #include "view/view.h"
+#include "view/devmode.h"
 #include "view/trace.h"
 #include "view/signal.h"
 #include "view/dsosignal.h"
@@ -196,6 +197,7 @@ namespace pv
 
         // Setup _view widget
         _view = new pv::view::View(_session, _sampling_bar, this);
+        _sampling_bar->add_mode_item(_view->get_devmode());
         _vertical_layout->addWidget(_view);
 
 

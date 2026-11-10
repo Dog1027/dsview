@@ -42,6 +42,7 @@
  *    device_type    device kind indicator (USB 2.0 / Demo / File)
  *    device         device selector
  *    options        device options dialog
+ *    work_mode      logic analyzer / oscilloscope / data acquisition
  *    sample_count   capture duration / depth
  *    at             the "@" between duration and rate
  *    sample_rate    sample rate
@@ -64,6 +65,8 @@ static const char *const TOP_BAR_LAYOUT = R"LAYOUT(
 
     [capture fixed]
         device_type:icon  device  options:icon
+        |
+        work_mode
         |
         sample_count  at  sample_rate
         |

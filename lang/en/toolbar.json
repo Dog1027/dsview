@@ -1,5 +1,9 @@
 [   
     {
+        "id": "IDS_TOOLBAR_CLOSE_FILE",
+        "text": "Close File"
+    },
+    {
         "id": "IDS_DEVICE_MODE_LOGIC",
         "text": "&Logic Analyzer"
     },

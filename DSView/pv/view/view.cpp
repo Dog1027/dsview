@@ -1126,7 +1126,6 @@ void View::update_margins()
     {
         _ruler->setGeometry(_viewcenter->x(), 0,  width, _viewcenter->y());
         _header->setGeometry(0, _viewcenter->y(), _viewcenter->x(), _viewcenter->height());
-        _devmode->setGeometry(0, 0, _viewcenter->x(), _viewcenter->y());
     } 
 }
 

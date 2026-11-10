@@ -1,5 +1,9 @@
 [
     {
+        "id": "IDS_TOOLBAR_CLOSE_FILE",
+        "text": "关闭文件"
+    },
+    {
         "id": "IDS_DEVICE_MODE_LOGIC",
         "text": "逻辑分析仪(&L)"
     },
