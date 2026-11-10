@@ -29,13 +29,18 @@ namespace pv {
 
 class SigSession;
 
+namespace view {
+class View;
+}
+
 namespace ui {
 
 /*
  * The bar at the bottom of the main window.
  *
  *   left : device  |  mode  |  state (ready / capturing / waiting for trigger)
- *   right: when the data on screen was captured, and what it is
+ *   right: time under the mouse  |  distance between cursors 1 and 2  |
+ *          when the data on screen was captured, and what it is
  *          (samples, duration, rate)
  *
  * It only reads cheap, in-memory session state, refreshed by a timer, so it
@@ -44,9 +49,10 @@ namespace ui {
 class AppStatusBar : public QStatusBar
 {
 public:
-    AppStatusBar(SigSession *session, QWidget *parent);
+    AppStatusBar(SigSession *session, view::View *view, QWidget *parent);
 
     void refresh();
+    void refresh_pointer();
 
 private:
     QLabel* add_label(const QString &name, bool permanent);
@@ -54,6 +60,7 @@ private:
 
 private:
     SigSession *_session;
+    view::View *_view;
     QTimer      _timer;
 
     QLabel *_device;
@@ -61,6 +68,8 @@ private:
     QLabel *_state;
     QLabel *_data;
     QLabel *_trigger;
+    QLabel *_pointer;
+    QLabel *_cursors;
 };
 
 } // namespace ui

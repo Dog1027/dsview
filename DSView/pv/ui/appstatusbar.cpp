@@ -26,6 +26,9 @@
 
 #include "../sigsession.h"
 #include "../deviceagent.h"
+#include "../view/view.h"
+#include "../view/viewport.h"
+#include "../view/cursor.h"
 
 namespace pv {
 namespace ui {
@@ -47,24 +50,25 @@ QString si(double v, const QString &unit)
     return QString::number(v, 'g', 3) + " " + prefixes[i] + unit;
 }
 
-// Seconds -> "1.05 s", "250 ms", "12.5 us", ...
-QString duration(double t)
+// Seconds -> "1.05 s", "250 ms", "12.5 us", ... (digits: significant digits)
+QString duration(double t, int digits = 3)
 {
-    static const char *units[] = {"s", "ms", "us", "ns"};
+    static const char *units[] = {"s", "ms", "us", "ns", "ps"};
     int i = 0;
-    while (t != 0 && std::fabs(t) < 1.0 && i < 3){
+    while (t != 0 && std::fabs(t) < 1.0 && i < 4){
         t *= 1000.0;
         i++;
     }
-    return QString::number(t, 'g', 3) + " " + units[i];
+    return QString::number(t, 'g', digits) + " " + units[i];
 }
 
 } // namespace
 
-AppStatusBar::AppStatusBar(SigSession *session, QWidget *parent)
+AppStatusBar::AppStatusBar(SigSession *session, view::View *view, QWidget *parent)
     : QStatusBar(parent)
 {
     _session = session;
+    _view = view;
 
     setObjectName("app_status_bar");
     setSizeGripEnabled(false);   // the frameless window resizes at its border
@@ -72,8 +76,15 @@ AppStatusBar::AppStatusBar(SigSession *session, QWidget *parent)
     _device  = add_label("status_device", false);
     _mode    = add_label("status_mode", false);
     _state   = add_label("status_state", false);
+    _pointer = add_label("status_pointer", true);
+    _cursors = add_label("status_cursors", true);
     _trigger = add_label("status_trigger", true);
     _data    = add_label("status_data", true);
+
+    // The mouse position changes too often for the timer; follow it directly.
+    connect(_view, &view::View::hover_point_changed, this, [this]() { refresh_pointer(); });
+    connect(_view, &view::View::cursor_update, this, [this]() { refresh(); });
+    connect(_view, &view::View::cursor_moving, this, [this]() { refresh(); });
 
     connect(&_timer, &QTimer::timeout, this, [this]() { refresh(); });
     _timer.start(300);
@@ -108,6 +119,8 @@ void AppStatusBar::refresh()
         set_text(_state, "");
         set_text(_data, "");
         set_text(_trigger, "");
+        set_text(_pointer, "");
+        set_text(_cursors, "");
         return;
     }
 
@@ -163,6 +176,42 @@ void AppStatusBar::refresh()
     }
     set_text(_data, data);
     set_text(_trigger, trigger);
+
+    // Distance between cursors 1 and 2, as time and as frequency.
+    QString cursors;
+    auto &list = _view->get_cursorList();
+    uint64_t rate = _session->cur_snap_samplerate();
+    if (mode == LOGIC && list.size() >= 2 && rate > 0 && _session->have_view_data()){
+        auto it = list.begin();
+        uint64_t a = (*it)->index();
+        uint64_t b = (*++it)->index();
+        double dt = (double)(a > b ? a - b : b - a) / rate;
+        cursors = QString("C1 \u2192 C2: ") + duration(dt, 4);
+        if (dt > 0)
+            cursors += "  (" + si(1.0 / dt, "Hz") + ")";
+    }
+    set_text(_cursors, cursors);
+
+    refresh_pointer();
+}
+
+void AppStatusBar::refresh_pointer()
+{
+    // Time under the mouse, while it is over the waveform.
+    QString text;
+    DeviceAgent *dev = _session->get_device();
+    uint64_t rate = _session->cur_snap_samplerate();
+
+    if (dev != NULL && dev->have_instance() && dev->get_work_mode() == LOGIC
+        && rate > 0 && _session->have_view_data()
+        && _view->get_time_view()->underMouse())
+    {
+        const double x = _view->hover_point().x();
+        const double index = (x + _view->offset()) * _view->scale() * rate - _view->trig_hoff();
+        if (x >= 0 && index >= 0)
+            text = tr("Time") + ": " + duration(index / rate, 5);
+    }
+    set_text(_pointer, text);
 }
 
 } // namespace ui
