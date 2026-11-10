@@ -60,7 +60,7 @@ const int SpectrumTrace::DownMargin = 0;
 const int SpectrumTrace::RightMargin = 30;
 
 const QString SpectrumTrace::FreqPrefixes[9] =
-    {"", "", "", "", "K", "M", "G", "T", "P"};
+    {"", "", "", "", "k", "M", "G", "T", "P"};
 
 const int SpectrumTrace::FirstSIPrefixPower = -9;
 const int SpectrumTrace::LastSIPrefixPower = 15;
@@ -214,7 +214,7 @@ std::vector<int> SpectrumTrace::get_dbv_ranges()
 QString SpectrumTrace::format_freq(double freq, unsigned precision)
 {
     if (freq <= 0) {
-        return "0Hz";
+        return "0 Hz";
     } else {
         const int order = floor(log10f(freq));
         assert(order >= FirstSIPrefixPower);
@@ -232,7 +232,7 @@ QString SpectrumTrace::format_freq(double freq, unsigned precision)
 
         char buffer[50] = {0};
         char format[15] = {0}; 
-        QString units = FreqPrefixes[prefix] + "Hz";
+        QString units = " " + FreqPrefixes[prefix] + "Hz";
         sprintf(format, "%%.%df", (int)precision);    
         sprintf(buffer, format, freq / divider);
         strcat(buffer, units.toUtf8().data());

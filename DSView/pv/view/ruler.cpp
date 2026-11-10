@@ -105,7 +105,7 @@ const int Ruler::MinPeriodScale = 10;
 const QString Ruler::SIPrefixes[9] =
 	{"f", "p", "n", QChar(0x03BC), "m", "", "k", "M", "G"};
 const QString Ruler::FreqPrefixes[9] =
-    {"P", "T", "G", "M", "K", "", "", "", ""};
+    {"P", "T", "G", "M", "k", "", "", "", ""};
 const int Ruler::FirstSIPrefixPower = -15;
 const int Ruler::pricision = 2;
 
@@ -187,7 +187,8 @@ QString Ruler::format_freq(double period, unsigned int precision)
        
         char buffer[50] = {0};
         char format[15] = {0};
-        QString units = FreqPrefixes[prefix] + "Hz";
+        // Value, space, unit (STYLE_GUIDE): "3.20 kHz".
+        QString units = " " + FreqPrefixes[prefix] + "Hz";
         sprintf(format, "%%.%df", (int)precision);       
         sprintf(buffer, format, 1 / (period * multiplier));
         strcat(buffer, units.toUtf8().data());
@@ -211,11 +212,12 @@ QString Ruler::format_time(double t, int prefix,
 
     char buffer[50];
     char format[15];
-    QString units = SIPrefixes[prefix] + "s";
+    // Value, space, unit (STYLE_GUIDE): "+1.32 ms".
+    QString units = " " + SIPrefixes[prefix] + "s";
     double v = (t * multiplier) / 1000000.0;
     buffer[0] = v >= 0 ? '+' : '-';
     sprintf(format, "%%.%df", (int)precision);   
-    sprintf(buffer + 1, format, v);
+    sprintf(buffer + 1, format, std::fabs(v));   // sign is in buffer[0]
     strcat(buffer + 1, units.toUtf8().data());
     return QString(buffer);
 }
