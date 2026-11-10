@@ -567,6 +567,28 @@ bool MainFrame::eventFilter(QObject *object, QEvent *event)
         }
     }
     else if (type == QEvent::MouseButtonPress) {
+        // On Wayland the window can't be moved/resized by setGeometry():
+        // hand the resize over to the compositor.
+        if (mouse_event->button() == Qt::LeftButton && _hit_border != None
+            && QGuiApplication::platformName() == "wayland" && windowHandle() != NULL)
+        {
+            Qt::Edges edges;
+            switch (_hit_border) {
+                case TopLeft:     edges = Qt::TopEdge | Qt::LeftEdge; break;
+                case TopRight:    edges = Qt::TopEdge | Qt::RightEdge; break;
+                case BottomLeft:  edges = Qt::BottomEdge | Qt::LeftEdge; break;
+                case BottomRight: edges = Qt::BottomEdge | Qt::RightEdge; break;
+                case Left:        edges = Qt::LeftEdge; break;
+                case Right:       edges = Qt::RightEdge; break;
+                case Top:         edges = Qt::TopEdge; break;
+                case Bottom:      edges = Qt::BottomEdge; break;
+                default: break;
+            }
+            if (edges != Qt::Edges() && windowHandle()->startSystemResize(edges)){
+                return true;
+            }
+        }
+
         if (mouse_event->button() == Qt::LeftButton) 
         if (_hit_border != None)
             _bDraging = true;

@@ -31,6 +31,7 @@
 #include <assert.h>
 #include <QTimer>
 #include <QGuiApplication>
+#include <QWindow>
 
 #include "../config/appconfig.h"
 #include "../appcontrol.h"
@@ -225,6 +226,17 @@ void TitleBar::mousePressEvent(QMouseEvent* event)
         bool bClick = (x >= 6 && y >= 5 && x <= width() - 6);  //top window need resize hit check
  
         if (!bTopWidow || bClick ){
+            // On Wayland an application can't position its own window,
+            // so move() does nothing: let the compositor move it instead.
+            if (_titleParent == NULL && QGuiApplication::platformName() == "wayland")
+            {
+                QWindow *win = _parent->window()->windowHandle();
+                if (win != NULL && win->startSystemMove()){
+                    event->accept();
+                    return;
+                }
+            }
+
             _is_draging = true;             
 
             _clickPos = event->globalPos(); 

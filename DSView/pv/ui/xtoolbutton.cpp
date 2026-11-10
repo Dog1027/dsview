@@ -23,6 +23,8 @@
 #include <QMenu>
 #include <QApplication>
 #include <QTimer>
+#include <QStylePainter>
+#include <QStyleOptionToolButton>
 #include "../log.h" 
 
 #ifdef _WIN32
@@ -40,6 +42,37 @@ XToolButton::XToolButton(QWidget *parent)
 {
     _menu = NULL;
     _is_mouse_down = false; 
+}
+
+// Qt draws icon+text left-aligned. When the button is wider than it needs
+// (e.g. equal-width toolbar buttons), center the icon and text instead.
+void XToolButton::paintEvent(QPaintEvent *event)
+{
+    int natural = sizeHint().width();
+    int extra = width() - natural;
+
+    if (toolButtonStyle() != Qt::ToolButtonTextBesideIcon || extra < 2){
+        QToolButton::paintEvent(event);
+        return;
+    }
+
+    QStylePainter p(this);
+    QStyleOptionToolButton opt;
+    initStyleOption(&opt);
+
+    // 1. Background/frame over the whole button, without label.
+    QStyleOptionToolButton bg = opt;
+    bg.text.clear();
+    bg.icon = QIcon();
+    p.drawComplexControl(QStyle::CC_ToolButton, bg);
+
+    // 2. The label at its natural width, centered. Drop the hover/pressed/
+    //    checked states so the (already drawn) background isn't drawn again.
+    QStyleOptionToolButton label = opt;
+    label.rect = QRect(extra / 2, 0, natural, height());
+    label.state &= ~(QStyle::State_MouseOver | QStyle::State_Sunken | QStyle::State_On);
+    label.activeSubControls = QStyle::SC_None;
+    p.drawComplexControl(QStyle::CC_ToolButton, label);
 }
 
 void XToolButton::mousePressEvent(QMouseEvent *event)

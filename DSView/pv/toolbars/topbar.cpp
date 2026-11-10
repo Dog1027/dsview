@@ -49,6 +49,13 @@ TopBar::TopBar(QWidget *parent)
     _row_layout->setContentsMargins(0, 0, 0, 0);
     _row_layout->setSpacing(0);
     addWidget(_row);
+
+    ADD_UI(this);
+}
+
+TopBar::~TopBar()
+{
+    REMOVE_UI(this);
 }
 
 QToolBar* TopBar::add_group(const QString &name, bool fixed)
@@ -143,10 +150,12 @@ void TopBar::build(const QList<ToolbarItemSource*> &sources, const char *layout)
             {
                 bt->setToolButtonStyle(Qt::ToolButtonIconOnly);
                 bt->installEventFilter(this);   // tooltip from its text
+                _icon_buttons.append(bt);
             }
             else
             {
                 bt->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+                _text_buttons.append(bt);
             }
         }
     }
@@ -165,6 +174,38 @@ void TopBar::build(const QList<ToolbarItemSource*> &sources, const char *layout)
         }
         unused->addAction(item.action);
     }
+
+    equalize_widths();
+}
+
+void TopBar::equalize_widths()
+{
+    for (QList<QToolButton*> *list : {&_text_buttons, &_icon_buttons})
+    {
+        int width = 0;
+        for (QToolButton *bt : *list)
+        {
+            bt->setMinimumWidth(0);
+            width = qMax(width, bt->sizeHint().width());
+        }
+        for (QToolButton *bt : *list)
+            bt->setMinimumWidth(width);
+    }
+}
+
+void TopBar::UpdateLanguage()
+{
+    equalize_widths();
+}
+
+void TopBar::UpdateTheme()
+{
+    equalize_widths();
+}
+
+void TopBar::UpdateFont()
+{
+    equalize_widths();
 }
 
 bool TopBar::eventFilter(QObject *object, QEvent *event)
