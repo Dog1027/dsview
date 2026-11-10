@@ -207,10 +207,12 @@ void Header::paint_values(QPainter &p, std::vector<Trace*> &traces, int w)
 {
     const ui::Theme &theme = ui::Theme::Instance();
     const int x = _view.hover_wave_x();
-    const QFontMetrics fm(p.font());
     QColor fore(QWidget::palette().color(QWidget::foregroundRole()));
 
+    const QFontMetrics name_fm(p.font());
     p.save();
+    p.setFont(::ui::data_font(p.font()));
+    const QFontMetrics fm(p.font());
     p.setRenderHint(QPainter::Antialiasing, true);
 
     for (auto t : traces) {
@@ -248,7 +250,7 @@ void Header::paint_values(QPainter &p, std::vector<Trace*> &traces, int w)
         else if (DecodeTrace *d = dynamic_cast<DecodeTrace*>(t)) {
             std::vector<std::pair<int, std::vector<QString>>> values;
             d->values_at(x, values);
-            const qreal left = name_rect.left() + fm.horizontalAdvance(t->get_name()) + 8;
+            const qreal left = name_rect.left() + name_fm.horizontalAdvance(t->get_name()) + 8;
             const qreal avail = right - left - 8;
             if (avail < 12)
                 continue;

@@ -20,6 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
+#include "../ui/fn.h"
 #include "cursor.h"
 
 #include "ruler.h"
@@ -124,8 +125,11 @@ void Cursor::paint_label(QPainter &p, const QRect &rect,
     p.drawLine(close.left() + 2, close.top() + 2, close.right() - 2, close.bottom() - 2);
     p.drawLine(close.left() + 2, close.bottom() - 2, close.right() - 2, close.top() + 2);
 
+    const QFont label_font = p.font();
+    p.setFont(::ui::data_font(label_font));
 	p.drawText(r, Qt::AlignCenter | Qt::AlignVCenter,
         Ruler::format_real_time(_index, _view.session().cur_snap_samplerate()));
+    p.setFont(label_font);
 
     const QRect arrowRect = QRect(r.bottomLeft().x(), r.bottomLeft().y(), r.width(), ArrowSize);
     p.drawText(arrowRect, Qt::AlignCenter | Qt::AlignVCenter, QString::number(_order));
@@ -154,9 +158,13 @@ void Cursor::paint_fix_label(QPainter &p, const QRect &rect,
     p.drawPolygon(points, countof(points));
 
     p.setPen(Qt::white);
-    if (has_hoff)
+    if (has_hoff) {
+        const QFont label_font = p.font();
+        p.setFont(::ui::data_font(label_font));
         p.drawText(r, Qt::AlignCenter | Qt::AlignVCenter,
             Ruler::format_real_time(_index, _view.session().cur_snap_samplerate()));
+        p.setFont(label_font);
+    }
 
     const QRect arrowRect = QRect(r.bottomLeft().x(), r.bottomLeft().y(), r.width(), ArrowSize);
     p.drawText(arrowRect, Qt::AlignCenter | Qt::AlignVCenter, label);
@@ -165,7 +173,8 @@ void Cursor::paint_fix_label(QPainter &p, const QRect &rect,
 void Cursor::compute_text_size(QPainter &p, unsigned int prefix)
 {
     (void)prefix;
-    _text_size = p.boundingRect(QRect(), 0,
+    // The time is drawn in the data font (paint_label).
+    _text_size = QFontMetrics(::ui::data_font(p.font())).boundingRect(QRect(), 0,
         Ruler::format_real_time(_index, _view.session().cur_snap_samplerate())).size();
 }
  

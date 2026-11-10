@@ -51,6 +51,15 @@ namespace ui
 
     void adjust_label_size(QLabel *ctrl, AdjustSizeAction action);
 
+    // Data values (numbers, hex, decoded text) in the waveform area: the
+    // system monospace font at the size of `base`, so digits keep their
+    // place when the value changes and hex columns line up.
+    QFont data_font(const QFont &base);
+
+    // `base` with tabular (equal width) digits, where Qt supports it
+    // (Qt 6.7+). For numbers among labels, e.g. the time ruler.
+    QFont tabular_font(const QFont &base);
+
 } // namespace ui
 
 #endif

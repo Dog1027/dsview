@@ -1778,13 +1778,14 @@ void Viewport::paintMeasureCard(QPainter &p)
     title_font.setWeight(QFont::DemiBold);
     const QFontMetrics fm(p.font());
     const QFontMetrics tfm(title_font);
+    const QFontMetrics vfm(::ui::data_font(p.font()));
 
     const int pad_h = 12, pad_v = 8, col_gap = 16, row_gap = 2;
     const int line_h = fm.height();
     int name_w = 0, value_w = 0;
     for (int i = 0; i < 4; i++){
         name_w = std::max(name_w, fm.horizontalAdvance(names[i]));
-        value_w = std::max(value_w, fm.horizontalAdvance(values[i]));
+        value_w = std::max(value_w, vfm.horizontalAdvance(values[i]));
     }
     const int dot = 8;
     const bool has_title = !_mm_name.isEmpty();
@@ -1832,7 +1833,9 @@ void Viewport::paintMeasureCard(QPainter &p)
         p.setPen(muted);
         p.drawText(row, Qt::AlignLeft | Qt::AlignVCenter, names[i]);
         p.setPen(text);
+        p.setFont(::ui::data_font(body));
         p.drawText(row, Qt::AlignRight | Qt::AlignVCenter, values[i]);
+        p.setFont(body);
         ty += line_h + row_gap;
     }
     p.restore();

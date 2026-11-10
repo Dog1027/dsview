@@ -38,6 +38,7 @@
 #include <QToolButton>
 #include <QDebug>
 #include <QFontMetrics>
+#include <QFontDatabase>
 
 #include "../config/appconfig.h"
 #include "../ui/xtoolbutton.h"
@@ -182,6 +183,24 @@ namespace ui
             ctrl->setFixedHeight(sz.height() + 5);
             ctrl->setFixedWidth(sz.width() + 5);
         }
+    }
+
+    QFont data_font(const QFont &base)
+    {
+        QFont f = base;
+        f.setFamilies(QStringList() << QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+        f.setStyleHint(QFont::Monospace);
+        f.setFixedPitch(true);
+        return f;
+    }
+
+    QFont tabular_font(const QFont &base)
+    {
+        QFont f = base;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+        f.setFeature(QFont::Tag("tnum"), 1);
+#endif
+        return f;
     }
 
 } // namespace ui

@@ -288,7 +288,8 @@ void Ruler::paintEvent(QPaintEvent*)
     if (fSize > 10)
         fSize = 10;
     font.setPointSizeF(fSize);
-    p.setFont(font);
+    // Equal width digits: tick labels and times do not jitter.
+    p.setFont(::ui::tabular_font(font));
 
     SigSession *session = AppControl::Instance()->GetSession();
 

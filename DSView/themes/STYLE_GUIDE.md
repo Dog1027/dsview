@@ -69,7 +69,7 @@ Hierarchy comes from weight and colour, not from size.
 | Heading | base | 600 | `@text` | dialog title, panel header, group box title, message box heading |
 | Body | base | normal | `@text` | labels, values, menu items |
 | Secondary | base | normal | `@text-muted` | hints (`QLabel#hint`), units, bit numbers, message box detail |
-| Monospace | base | normal | `@text` | none yet; for hex values if needed |
+| Data | (data area size) | normal | data colours | values in the waveform area: decoder annotations, values under the mouse, floating measurement values, cursor times |
 
 Rules:
 
@@ -83,6 +83,13 @@ Rules:
   so the theme can change it. A bold label: object name `heading`.
   Group box titles are bold through the `QGroupBox` rule.
 - The "UI gallery" title is the only text bigger than base.
+- Data in monospace, labels in the UI font. Values the waveform area
+  shows (decoded text, levels, measured values, cursor times) use
+  `ui::data_font()` (the system monospace font, Noto Sans Mono on
+  Fedora) so digits keep their place and hex lines up in columns.
+  Channel names, decoder row titles and "Zoom in for details" stay in
+  the UI font. Numbers among labels (the time ruler) use
+  `ui::tabular_font()`: the UI font with equal width digits (`tnum`).
 
 Spacing
 -------

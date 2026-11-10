@@ -21,6 +21,7 @@
  */
 
 #include <libsigrokdecode.h>
+#include "../ui/fn.h"
 #include "../dsvdef.h" 
 #include <boost/functional/hash.hpp>
 #include <QAction> 
@@ -271,12 +272,16 @@ void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColo
                             if (!annotations.empty()) {
                                 double last_x = -1;
 
+                                // Decoded values in the data font.
+                                const QFont label_font = p.font();
+                                p.setFont(::ui::data_font(label_font));
                                 for(Annotation *a : annotations){
                                     draw_annotation(*a, p, get_text_colour(),
                                         annotation_height, left, right,
                                         samples_per_pixel, pixels_offset, y,
                                         0, min_annWidth, fore, back, last_x);
                                 }
+                                p.setFont(label_font);
                             }
                         }
                         else {
