@@ -1059,6 +1059,7 @@ void Viewport::onLogicMouseRelease(QMouseEvent *event)
                             if (abs(event->pos().y() - s->get_y()) < _view.get_signalHeight()) {
                                 set_action(LOGIC_EDGE);
                                 _edge_start = _view.pixel2index(event->pos().x());
+                                _em_valid = false;
                                 break;
                             }
                         }
@@ -1673,6 +1674,7 @@ void Viewport::measure()
                 }
                 else if (_action_type == LOGIC_EDGE) {
                     if (logicSig->edges(_view.hover_point(), _edge_start, _edge_rising, _edge_falling)) {
+                        _em_valid = true;
                         _mm_name = logicSig->get_name();
                         _mm_colour = logicSig->wave_colour(QColor());
                         _cur_preX = _view.index2pixel(_edge_start);
@@ -2039,7 +2041,9 @@ void Viewport::paintMeasure(QPainter &p, QColor fore, QColor back)
         measure_updated();
     }
 
-    if (_action_type == LOGIC_EDGE 
+    // Only once the pointer is on a channel: a click between the rows
+    // has nothing to count yet.
+    if (_action_type == LOGIC_EDGE && _em_valid
             && _view.session().have_view_data()){
         p.setPen(active_color);
         p.drawLine(QLineF(_cur_preX, _cur_midY-5, _cur_preX, _cur_midY+5));

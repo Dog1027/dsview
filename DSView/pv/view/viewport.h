@@ -210,6 +210,7 @@ private:
     QColor      _mm_colour;
 
     uint64_t    _edge_rising;
+    bool        _em_valid = false;   // edge count has a channel (card shown)
     uint64_t    _edge_falling;
     uint64_t    _edge_start;
     uint64_t    _edge_end;
