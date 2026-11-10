@@ -45,6 +45,9 @@ class MyStyle : public QProxyStyle
                   const QWidget *widget = nullptr, QStyleHintReturn *ret = nullptr) const override {
         if (hint == QStyle::SH_UnderlineShortcut)
             return 0;
+        // OK / Cancel buttons: text only.
+        if (hint == QStyle::SH_DialogButtonBox_ButtonsHaveIcons)
+            return 0;
         return QProxyStyle::styleHint(hint, option, widget, ret);
     }
 

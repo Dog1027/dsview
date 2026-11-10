@@ -1694,6 +1694,13 @@ QToolBar#activity_bar QToolButton:checked:hover
     background-color: @hover;
 }
 
+/* menu buttons (display settings) are not panels: no "open" marker */
+QToolBar#activity_bar QToolButton[popupMode="2"],
+QToolBar#activity_bar QToolButton[popupMode="2"]:checked
+{
+    border-left-color: transparent;
+}
+
 QToolBar#activity_bar QToolButton::menu-indicator
 {
     image: none;
@@ -1819,4 +1826,12 @@ QToolBar QToolButton#help_menu_button::menu-indicator
 {
     image: none;
     width: 0px;
+}
+
+/* Dialogs and message boxes (pv/dialogs/dsdialog.cpp, dsmessagebox.cpp) */
+QFrame#dialog_frame
+{
+    background-color: @bg;
+    border: 1px solid @border;
+    border-radius: 10px;
 }

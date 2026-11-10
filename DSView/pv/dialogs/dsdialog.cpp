@@ -23,6 +23,7 @@
 #include "dsdialog.h"
 #include "shadow.h"
 
+#include <QFrame>
 #include <QObject>
 #include <QEvent>
 #include <QMouseEvent>
@@ -157,7 +158,9 @@ int DSDialog::exec()
 
 void DSDialog::build_base(bool hasClose)
 {    
-    _main_widget = new QWidget(this);
+    // Rounded card with the dialog content ("Dialogs" in theme.qss).
+    _main_widget = new QFrame(this);
+    _main_widget->setObjectName("dialog_frame");
     _main_layout = new QVBoxLayout(_main_widget);
     _main_widget->setLayout(_main_layout);
 
@@ -165,7 +168,7 @@ void DSDialog::build_base(bool hasClose)
     _shadow->setBlurRadius(10.0);
     _shadow->setDistance(3.0);
     _shadow->setColor(QColor(0, 0, 0, 80));
-    _main_widget->setAutoFillBackground(true); 
+    _main_widget->setAutoFillBackground(false);   // the stylesheet paints it, rounded 
     this->setGraphicsEffect(_shadow);
 
     _titlebar = new toolbars::TitleBar(false, this, NULL,hasClose);
