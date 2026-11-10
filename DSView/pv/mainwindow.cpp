@@ -28,6 +28,7 @@
 #include <QMenuBar>
 #include <QStatusBar>
 #include <QVBoxLayout>
+#include <QFrame>
 #include <QWidget>
 #include <QDesktopServices>
 #include <QKeyEvent>
@@ -108,6 +109,7 @@
 #include "toolbars/topbar.h"
 #include "toolbars/topbarlayout.h"
 #include "ui/appstatusbar.h"
+#include "ui/panelcard.h"
 
 namespace pv
 {
@@ -153,8 +155,10 @@ namespace pv
         setContentsMargins(0, 0, 0, 0);
         layout()->setSpacing(0);
 
-        // Setup the central widget
-        _central_widget = new QWidget(this);
+        // Setup the central widget. It is a QFrame so the stylesheet can
+        // draw it as a rounded card ("Cards" in theme.qss).
+        _central_widget = new QFrame(this);
+        _central_widget->setObjectName("central_card");
         _vertical_layout = new QVBoxLayout(_central_widget);
         _vertical_layout->setSpacing(0);
         _vertical_layout->setContentsMargins(0, 0, 0, 0);
@@ -180,7 +184,7 @@ namespace pv
         _trigger_dock->setAllowedAreas(Qt::RightDockWidgetArea);
         _trigger_dock->setVisible(false);
         _trigger_widget = new dock::TriggerDock(_trigger_dock, _session);        
-        _trigger_dock->setWidget(_trigger_widget);
+        ui::PanelCard::wrap(_trigger_dock, _trigger_widget);
 
         _dso_trigger_dock = new QDockWidget(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TRIGGER_DOCK_TITLE), "Trigger Setting..."), this);
         _dso_trigger_dock->setObjectName("dso_trigger_dock");
@@ -188,7 +192,7 @@ namespace pv
         _dso_trigger_dock->setAllowedAreas(Qt::RightDockWidgetArea);
         _dso_trigger_dock->setVisible(false);
         _dso_trigger_widget = new dock::DsoTriggerDock(_dso_trigger_dock, _session);
-        _dso_trigger_dock->setWidget(_dso_trigger_widget);
+        ui::PanelCard::wrap(_dso_trigger_dock, _dso_trigger_widget);
 
         // Setup _view widget
         _view = new pv::view::View(_session, _sampling_bar, this);
@@ -217,7 +221,7 @@ namespace pv
         _protocol_dock->setAllowedAreas(Qt::RightDockWidgetArea);
         _protocol_dock->setVisible(false);
         _protocol_widget = new dock::ProtocolDock(_protocol_dock, *_view, _session);
-        _protocol_dock->setWidget(_protocol_widget);
+        ui::PanelCard::wrap(_protocol_dock, _protocol_widget);
 
         _session->set_decoder_pannel(_protocol_widget);
 
@@ -228,7 +232,7 @@ namespace pv
         _measure_dock->setAllowedAreas(Qt::RightDockWidgetArea);
         _measure_dock->setVisible(false);
         _measure_widget = new dock::MeasureDock(_measure_dock, *_view, _session);
-        _measure_dock->setWidget(_measure_widget);
+        ui::PanelCard::wrap(_measure_dock, _measure_widget);
 
         // search dock
         _search_dock = new QDockWidget(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEARCH_DOCK_TITLE), "Search..."), this);
