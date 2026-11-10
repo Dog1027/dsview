@@ -1,6 +1,8 @@
 DSView themes
 =============
 
+The rules for how the UI should look are in [STYLE_GUIDE.md](STYLE_GUIDE.md).
+
 The stylesheet started from BreezeStyleSheets (see LICENSE.md) and has been
 reworked into one template plus a palette per theme.
 

@@ -1,0 +1,208 @@
+DSView UI style guide
+=====================
+
+How DSView should look, and the rules that keep it that way. The values
+below are the ones in `theme.qss`, the palettes and the code; when you
+change one, change it here too.
+
+See it: `./build.dir/DSView --gallery` shows every control in the
+current theme (see README.md, "UI gallery").
+
+Principles
+----------
+
+1. **Calm chrome, loud data.** Window, toolbars and panels stay in greys;
+   colour is for the signals, the channel tags and the one action that
+   matters on screen.
+2. **Native where the desktop decides.** The system title bar on Linux,
+   the platform's button order in dialogs.
+3. **Cards on a backdrop.** The waveform area, the side panels and dialogs
+   are rounded cards (`@bg`) on the darker window (`@chrome`).
+4. **One blue button.** In a dialog only the button that does the thing
+   (OK, Yes, Save) is `@accent`. Everything else is a plain button.
+5. **Icons alone only with a tooltip.** An icon-only button always has
+   its text as tooltip.
+6. **One place for the look.** Colours, fonts, borders and padding come
+   from `theme.qss` and the palettes, not from code.
+
+Colours
+-------
+
+Use palette tokens (`@name`), never hex values, in `theme.qss`. In C++
+(self-drawn widgets) read them with `ui::Theme::Instance().color("name")`.
+
+| Token | Use it for |
+|-------|------------|
+| `@chrome` | window backdrop, toolbars, activity bar, status bar |
+| `@bg` | cards: waveform area, side panels, dialogs |
+| `@surface` | inputs and buttons |
+| `@hover` | hover fill, inner dividers |
+| `@divider` | lines between chrome areas, under panel headers |
+| `@border` | borders of inputs, buttons, group boxes |
+| `@border-hover` | input border on hover |
+| `@handle` | scroll bar handles, strong lines |
+| `@text` | normal text |
+| `@text-bright` | text on hover / selection |
+| `@text-muted` | secondary text: hints, units, bit numbers, headers of tables, status bar |
+| `@text-disabled` | disabled controls |
+| `@accent` (+ `-hover`, `-pressed`) | the default button, focus border, checked state, slider, progress |
+| `@on-accent` | text and icons on `@accent` |
+| `@selection` | selected rows and menu items |
+| `@danger` (+ `-hover`) | destructive actions and errors |
+| `@close-hover` | window close button only |
+
+Not from the palette, on purpose: the channel colours (`PROBE_COLORS`),
+the decoder annotation colours and the trigger / cursor marker colours.
+They identify data and stay the same in both themes.
+
+Typography
+----------
+
+One family (the system UI font, or the one picked in Display options) and
+**one size**: `appOptions.fontSize` (default 9 pt, set by the user).
+Hierarchy comes from weight and colour, not from size.
+
+| Level | Size | Weight | Colour | Examples |
+|-------|------|--------|--------|----------|
+| Heading | base | 600 | `@text` | dialog title, panel header, group box title, message box heading |
+| Body | base | normal | `@text` | labels, values, menu items |
+| Secondary | base | normal | `@text-muted` | hints (`QLabel#hint`), units, bit numbers, message box detail |
+| Monospace | base | normal | `@text` | none yet; for hex values if needed |
+
+Rules:
+
+- Apply the size with `ui::set_form_font()` / `update_font()` as dialogs
+  and panels already do. Do not add `+1` or other sizes.
+- Bold in QSS (`font-weight: 600`), not with `QFont::setBold` in code,
+  so the theme can change it.
+- The "UI gallery" title is the only text bigger than base.
+
+Spacing
+-------
+
+All gaps come from this scale: **2 · 4 · 6 · 8 · 12 · 16** px.
+
+| Where | Value |
+|-------|-------|
+| Icon and its text inside one control | 2–4 |
+| Controls in one row of a side panel (e.g. field, icon button, field) | 6 |
+| Controls in one row of a dialog; check box / radio indicator and text | 8 |
+| Between rows of a form | 8 |
+| Label column and field column of a form | 12 |
+| Between sections (groups, cards) in a dialog or panel | 12 |
+| Inside a group box / card (left, top, right, bottom) | 12, 10, 12, 12 |
+| Dialog content margins (left, top, right, bottom) | 16, 4, 16, 16 |
+| Between the waveform card, the side panels and the window edge | 4–6 (card `margin` and `QMainWindow::separator` in `theme.qss`) |
+
+Rules:
+
+- Let layouts size things. No `setFixedHeight` / `setFixedSize` /
+  spacer widgets to push content around; use the layout's spacing and
+  `addStretch`.
+- A dialog is as big as its content (`sizeHint`). It only scrolls when the
+  content is taller than 70% of the screen (see `DeviceOptions`).
+
+Shapes
+------
+
+| Element | Corner radius |
+|---------|---------------|
+| Inputs, push buttons, check boxes | 4 |
+| Tool buttons (toolbar, activity bar, panels) | 6 |
+| Cards, group boxes, menus | 8 |
+| Window frame, dialog frame | 10 |
+
+Borders are 1 px. The focus border is `@accent`. No drop shadows inside
+the window; dialogs get the one from `Shadow`.
+
+Components
+----------
+
+**Push buttons.** Plain by default. In a `QDialogButtonBox`: min width
+72, padding 5 × 12. Exactly one default (blue) button per dialog.
+
+**Dialog buttons.** Always a `QDialogButtonBox` at the bottom right, in
+its own row of the dialog layout. Button order is the platform's
+(`MyStyle`: GNOME order on Linux, so Cancel / No on the left, the action
+at the right end). Do not build OK / Cancel rows by hand.
+
+**Dialogs.** Derive from `DSDialog`: title bar (title left, DemiBold),
+then content in group boxes (`QGroupBox` with a title, `QFormLayout`
+inside), then the button box. No icon in the title bar.
+
+**Message boxes.** `MsgBox::Show` / `MsgBox::Confirm` (`DSMessageBox`).
+No icon. Text: one sentence that says what happened or what is asked
+("Save captured data?"). Details, if any, go in the informative text;
+then the first line is shown as a heading and the detail muted. Yes / OK
+is the default.
+
+**Side panels.** A `panel_card` with a header label, then the content
+with the side panel row spacing (6). Content follows the panel width
+(`setWidgetResizable(true)`); a panel never scrolls sideways.
+
+**Icon-only buttons.** `QToolButton`, 24 px icon in the toolbar and
+activity bar, tooltip = the button's text.
+
+**Secondary labels.** `QLabel` with object name `hint`
+(`setObjectName("hint")`).
+
+**Styled variants.** Distinguish them by object name and give them a rule
+in `theme.qss`; do not call `setStyleSheet` in code (exceptions: colours
+that come from data, like the palette swatches in the gallery). Existing
+names: `hint`, `trigger_hint`, `inline_search_icon`, `panel_card`,
+`panel_card_header`, `central_card`, `dialog_frame`, `window_frame`,
+`app_status_bar`, `main_bar_row`, `activity_bar`.
+
+Icons
+-----
+
+Generated by `DSView/icons/genicons.py` into `icons/dark` and
+`icons/light` (`python3 icons/genicons.py icons`).
+
+- 24 × 24 viewBox, 1.5 px stroke, round caps and joins, no fill.
+- Colour `#cccccc` (dark) / `#3b3b3b` (light), the palette's `@text`.
+- Exceptions with colour: `start` (green), `stop` (red), `single`
+  (blue); the mode waves `la`, `daq`, `osc` use a 28 × 14 viewBox.
+- New icon: add it to `genicons.py`, regenerate, add both files to
+  `DSView.qrc`, check it in the gallery's icon card.
+
+Self-drawn parts
+----------------
+
+Waveforms, the ruler, channel rows and cursors are painted in C++.
+
+- Chrome colours from `Theme::color()`; data colours as listed above.
+- Interactive marks (trigger buttons on channel rows) show only the
+  current state until hovered.
+- Leave room for labels at both ends of the time axis (`View::edge_pad`).
+  Code that turns view pixels into sample indexes must cope with the
+  negative offset there.
+
+Text
+----
+
+- UI strings go through the language files (`L_S(...)`, `lang/en` and
+  `lang/cn`); add both.
+- Labels: title case as in the existing strings ("Trigger Position").
+  Messages: sentence case, ending with a full stop or a question mark.
+- Units after values with a space: `1.00 s`, `25 MHz`, `3.3 V`.
+
+Before you commit a UI change
+-----------------------------
+
+1. `./build.dir/DSView --gallery-shot /tmp/before` on the old build,
+   `--gallery-shot /tmp/after` on the new one; compare both themes.
+2. Open the screens you touched in dark and light.
+3. Check a narrow window: nothing clipped, no horizontal scroll in panels.
+4. If you added a colour, size or variant, add it to this guide.
+
+Known deviations (to fix)
+-------------------------
+
+Found with the gallery; the code does not follow the guide here yet.
+
+- Message box text is smaller than the form labels of dialogs.
+- Group box titles are bigger than the base size.
+- Tool buttons outside the toolbars use 16 px icons.
+- Several panels and dialogs still set their own font sizes (`+1`) or
+  fixed sizes.
