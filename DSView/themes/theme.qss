@@ -102,8 +102,7 @@ QGroupBox::indicator
     margin-left: 2px;
 }
 
-QCheckBox::indicator:unchecked,
-QCheckBox::indicator:unchecked:focus
+QCheckBox::indicator:unchecked
 {
     image: url(@icons/checkbox_unchecked.svg);
 }
@@ -114,7 +113,6 @@ QGroupBox::indicator:unchecked:hover,
 QGroupBox::indicator:unchecked:focus,
 QGroupBox::indicator:unchecked:pressed
 {
-    border: none;
     image: url(@icons/checkbox_unchecked-hover.svg);
 }
 
@@ -124,13 +122,11 @@ QCheckBox::indicator:checked
 }
 
 QCheckBox::indicator:checked:hover,
-QCheckBox::indicator:checked:focus,
 QCheckBox::indicator:checked:pressed,
 QGroupBox::indicator:checked:hover,
 QGroupBox::indicator:checked:focus,
 QGroupBox::indicator:checked:pressed
 {
-    border: none;
     image: url(@icons/checkbox_checked-hover.svg);
 }
 
@@ -139,8 +135,7 @@ QCheckBox::indicator:indeterminate
     image: url(@icons/checkbox_indeterminate.svg);
 }
 
-QCheckBox::indicator:indeterminate:focus,
-QCheckBox::indicator:indeterminate:hover
+QCheckBox::indicator:indeterminate:hover,
 QCheckBox::indicator:indeterminate:pressed
 {
     image: url(@icons/checkbox_indeterminate-hover.svg);
@@ -181,8 +176,7 @@ QRadioButton::indicator
     height: 10px;
 }
 
-QRadioButton::indicator:unchecked,
-QRadioButton::indicator:unchecked:focus
+QRadioButton::indicator:unchecked
 {
     image: url(@icons/radio_unchecked.svg);
 }
@@ -191,7 +185,6 @@ QRadioButton::indicator:unchecked:focus
 QRadioButton::indicator:unchecked:hover,
 QRadioButton::indicator:unchecked:pressed
 {
-    border: none;
     outline: none;
     image: url(@icons/radio_unchecked-hover.svg);
 }
@@ -199,16 +192,13 @@ QRadioButton::indicator:unchecked:pressed
 
 QRadioButton::indicator:checked
 {
-    border: none;
     outline: none;
     image: url(@icons/radio_checked.svg);
 }
 
 QRadioButton::indicator:checked:hover,
-QRadioButton::indicator:checked:focus,
 QRadioButton::indicator:checked:pressed
 {
-    border: none;
     outline: none;
     image: url(@icons/radio_checked-hover.svg);
 }

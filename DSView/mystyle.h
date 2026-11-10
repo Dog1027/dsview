@@ -29,7 +29,38 @@
 #include <QTabBar>
 #include <QDialogButtonBox>
 #include <QPushButton>
+#include <QCheckBox>
+#include <QRadioButton>
 #include <QFocusEvent>
+#include <QFormLayout>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QPointer>
+#include "pv/ui/theme.h"
+
+// Keyboard focus ring for check boxes and radio buttons. It is a separate
+// widget on top, so it can also go around the name in front of the box
+// (the form label or buddy label), which QSS cannot reach.
+class FocusRing : public QWidget
+{
+public:
+    explicit FocusRing(QWidget *parent) : QWidget(parent) {
+        setAttribute(Qt::WA_TransparentForMouseEvents);
+        setAttribute(Qt::WA_NoSystemBackground);
+        setFocusPolicy(Qt::NoFocus);
+    }
+protected:
+    void paintEvent(QPaintEvent *) override {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+        QPen pen(pv::ui::Theme::Instance().color("accent", QColor(0x00, 0x78, 0xd4)));
+        pen.setWidth(2);
+        p.setPen(pen);
+        p.setBrush(Qt::NoBrush);
+        p.drawRoundedRect(QRectF(rect()).adjusted(1, 1, -1, -1), 4, 4);
+    }
+};
 
 class MyStyle : public QProxyStyle
 {
@@ -76,6 +107,13 @@ class MyStyle : public QProxyStyle
             widget->setCursor(Qt::PointingHandCursor);
         }
 
+        // Check boxes and radio buttons: same keyboard-only focus ring
+        // (FocusRing, around the box, its text and the name in front).
+        if (qobject_cast<QCheckBox*>(widget) != nullptr
+            || qobject_cast<QRadioButton*>(widget) != nullptr) {
+            widget->installEventFilter(this);
+        }
+
         if (QPushButton *pb = qobject_cast<QPushButton*>(widget)) {
             // A mouse click does not leave focus on a push button; only
             // the keyboard (Tab) shows the focus ring. Otherwise a clicked
@@ -115,22 +153,116 @@ class MyStyle : public QProxyStyle
     using QProxyStyle::polish;
 
     bool eventFilter(QObject *obj, QEvent *event) override {
+        QWidget *w = qobject_cast<QWidget*>(obj);
+        const bool choice = qobject_cast<QCheckBox*>(obj) != nullptr
+                         || qobject_cast<QRadioButton*>(obj) != nullptr;
+
         if (event->type() == QEvent::FocusIn || event->type() == QEvent::FocusOut) {
-            QWidget *w = qobject_cast<QWidget*>(obj);
             bool kb = false;
             if (event->type() == QEvent::FocusIn) {
                 const Qt::FocusReason r = static_cast<QFocusEvent*>(event)->reason();
                 kb = r == Qt::TabFocusReason || r == Qt::BacktabFocusReason;
             }
-            if (w && w->property("kbfocus").toBool() != kb) {
+            if (w && choice) {
+                if (kb)
+                    show_ring(w);
+                else if (_ring_target == w)
+                    hide_ring();
+            }
+            else if (w && w->property("kbfocus").toBool() != kb) {
                 w->setProperty("kbfocus", kb);
                 w->style()->unpolish(w);
                 w->style()->polish(w);
                 w->update();
             }
         }
+        else if (w && w == _ring_target) {
+            if (event->type() == QEvent::Move || event->type() == QEvent::Resize)
+                show_ring(w);
+            else if (event->type() == QEvent::Hide)
+                hide_ring();
+        }
         return QProxyStyle::eventFilter(obj, event);
     }
+
+private:
+    // The label that names `w`: its QFormLayout label or a buddy label.
+    static QLabel* name_label(QWidget *w) {
+        QWidget *p = w->parentWidget();
+        if (!p)
+            return nullptr;
+        for (QFormLayout *form : p->findChildren<QFormLayout*>()) {
+            if (form->indexOf(w) >= 0) {
+                if (QLabel *l = qobject_cast<QLabel*>(form->labelForField(w)))
+                    return l;
+            }
+        }
+        // A grid row: the label in the cell to the left.
+        for (QGridLayout *grid : p->findChildren<QGridLayout*>()) {
+            const int i = grid->indexOf(w);
+            if (i < 0)
+                continue;
+            int row, col, rs, cs;
+            grid->getItemPosition(i, &row, &col, &rs, &cs);
+            if (col > 0) {
+                QLayoutItem *it = grid->itemAtPosition(row, col - 1);
+                if (QLabel *l = it ? qobject_cast<QLabel*>(it->widget()) : nullptr)
+                    return l;
+            }
+        }
+        for (QLabel *l : p->findChildren<QLabel*>()) {
+            if (l->buddy() == w)
+                return l;
+        }
+        return nullptr;
+    }
+
+    // Box and its text, without the empty part of a stretched widget.
+    static QRect content_rect(QWidget *w) {
+        const QSize hint = w->sizeHint();
+        QRect r(QPoint(0, 0), QSize(qMin(hint.width(), w->width()), w->height()));
+        if (w->layoutDirection() == Qt::RightToLeft)
+            r.moveRight(w->width() - 1);
+        return r;
+    }
+
+    void show_ring(QWidget *w) {
+        QWidget *p = w->parentWidget();
+        if (!p)
+            return;
+        QRect r = content_rect(w).translated(w->pos());
+
+        QLabel *l = name_label(w);
+        if (l && l->isVisible() && !l->text().trimmed().isEmpty() && p->isAncestorOf(l)) {
+            QString text = l->text();
+            text.remove('&');
+            const QSize ts(l->fontMetrics().horizontalAdvance(text), l->fontMetrics().height());
+            QRect lr = QStyle::alignedRect(l->layoutDirection(), l->alignment(), ts, l->rect());
+            lr.moveTopLeft(l->mapTo(p, lr.topLeft()));
+            r = r.united(lr);
+        }
+
+        r = r.adjusted(-5, -3, 5, 3).intersected(p->rect());
+
+        if (!_ring || _ring->parentWidget() != p) {
+            delete _ring;
+            _ring = new FocusRing(p);
+        }
+        _ring_target = w;
+        _ring->setGeometry(r);
+        _ring->raise();
+        _ring->show();
+        _ring->update();
+    }
+
+    void hide_ring() {
+        if (_ring)
+            _ring->hide();
+        _ring_target = nullptr;
+    }
+
+    QPointer<FocusRing> _ring;
+    QPointer<QWidget> _ring_target;
 };
 
 #endif // MYSTYLE_H

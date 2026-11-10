@@ -145,6 +145,12 @@ role (Cancel, No) are red: `MyStyle::polish` sets `role="reject"`,
 `theme.qss` colours them. Other buttons in the box (Reset, Help,
 Abort) stay plain.
 
+**Check boxes and radio buttons.** Same rule: no focus look after a
+click; Tab shows a 2 px `@accent` ring (`FocusRing` in `mystyle.h`)
+around the box, its text and the name in front of it (the
+`QFormLayout` label, the label in the grid cell to the left, or a buddy
+label), so the ring marks the whole setting, not only the box.
+
 **Dialog buttons.** Always a `QDialogButtonBox` at the bottom right, in
 its own row of the dialog layout. Button order is the platform's
 (`MyStyle`: GNOME order on Linux, so Cancel / No on the left, the action
