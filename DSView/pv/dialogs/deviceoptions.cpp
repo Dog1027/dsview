@@ -871,13 +871,23 @@ void DeviceOptions::try_resize_scroll()
     if (content.height() > maxHeight)
         w += scroll->verticalScrollBar()->sizeHint().width() + 4;
 
-    scroll->setFixedSize(w, h);
-    _scroll_panel->setFixedSize(w, h);
+    // The scroll area is as tall as the content, up to maxHeight; it is
+    // rebuilt with the mode, so reset the limits before setting them.
+    scroll->setMinimumSize(w, h);
+    scroll->setMaximumSize(QWIDGETSIZE_MAX, h);
+    _scroll_panel->setMinimumSize(w, h);
+    _scroll_panel->setMaximumSize(QWIDGETSIZE_MAX, h);
 
+    // A starting size, not a fixed one: the layout keeps the dialog at
+    // least as big as its content. Refresh the cached sizes first (they
+    // reach the parents by posted events).
+    scroll->updateGeometry();
+    _scroll_panel->updateGeometry();
     this->setMinimumSize(0, 0);
     this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+    this->layout()->invalidate();
     this->layout()->activate();
-    this->setFixedSize(this->sizeHint());
+    this->resize(this->sizeHint());
 }
 
 void DeviceOptions::keyPressEvent(QKeyEvent *event) 
