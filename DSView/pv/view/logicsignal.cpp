@@ -218,8 +218,9 @@ void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QC
 {
     const int y = get_y();
 
-    // Trigger buttons: rising, high, falling, low, any edge. Drawn faint
-    // until the mouse is on this row; the selected one is filled.
+    // Trigger buttons: rising, high, falling, low, any edge. Only the
+    // selected one is shown until the mouse is on this row, so a column of
+    // 16 channels does not show 80 buttons.
     const LogicSetRegions types[] = {POSTRIG, HIGTRIG, NEGTRIG, LOWTRIG, EDGTRIG};
 
     const bool rowHover = pt.x() >= 0
@@ -238,6 +239,9 @@ void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QC
         const bool on = (_trig == type);
         const bool hover = r.contains(pt);
 
+        if (!on && !rowHover)
+            continue;
+
         // background
         p.setPen(Qt::NoPen);
         if (on){
@@ -253,8 +257,8 @@ void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QC
 
         // glyph
         QColor ink = on ? QColor(Qt::white) : fore;
-        if (!on && !hover && !rowHover)
-            ink.setAlpha(70);
+        if (!on && !hover)
+            ink.setAlpha(150);
         p.setPen(QPen(ink, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         p.setBrush(Qt::NoBrush);
 
