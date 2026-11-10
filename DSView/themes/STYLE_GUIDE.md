@@ -48,6 +48,7 @@ Use palette tokens (`@name`), never hex values, in `theme.qss`. In C++
 | `@accent` (+ `-hover`, `-pressed`) | the default button, focus border, checked state, slider, progress |
 | `@on-accent` | text and icons on `@accent` |
 | `@selection` | selected rows and menu items |
+| `@link` | links in text (labels, text browsers) |
 | `@danger` (+ `-hover`) | destructive actions and errors |
 | `@close-hover` | window close button only |
 
@@ -104,8 +105,16 @@ Rules:
 - Let layouts size things. No `setFixedHeight` / `setFixedSize` /
   spacer widgets to push content around; use the layout's spacing and
   `addStretch`.
+- Allowed: a `setMinimumWidth` so a dialog or field does not get too
+  narrow, and widths computed from the font (`QFontMetrics`) so columns
+  line up. Not allowed: fixed heights and fixed overall sizes; they clip
+  text at bigger font sizes.
 - A dialog is as big as its content (`sizeHint`). It only scrolls when the
-  content is taller than 70% of the screen (see `DeviceOptions`).
+  content is taller than 70% of the screen (see `DeviceOptions`). A dialog
+  with long text (About) gets a starting size with `resize()`, not a fixed
+  one.
+- A dialog without a default button gives the first focus to its content,
+  not to a button, so no button looks selected when it opens.
 
 Shapes
 ------
@@ -207,7 +216,8 @@ Known deviations (to fix)
 
 Found with the gallery; the code does not follow the guide here yet.
 
-- Several panels and dialogs still set fixed sizes (`setFixedSize`,
-  `setFixedHeight`, `setMinimumWidth` with computed values).
+- `Calibration` (DSCope only) was moved to natural sizes without being
+  checked on a device.
+- `WaitingDialog` keeps its fixed size (a small busy box).
 - The channel rows, ruler and waveform labels use their own font options
   (Display options → fonts), not the base size. Intended for now.

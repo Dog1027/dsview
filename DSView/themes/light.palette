@@ -26,6 +26,7 @@
 @accent-pressed: #004c94;
 @on-accent:      #ffffff;
 @selection:      #cce3f7;
+@link:           #005fb8;
 
 /* status */
 @danger:         #e55765;

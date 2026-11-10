@@ -26,6 +26,7 @@
 @accent-pressed: #005ba4;
 @on-accent:      #ffffff;   /* text on accent background */
 @selection:      #04395e;   /* selected rows, menu items */
+@link:           #4daafc;   /* links in text */
 
 /* status */
 @danger:         #f14c4c;

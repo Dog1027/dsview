@@ -47,12 +47,9 @@ MathOptions::MathOptions(SigSession *session, QWidget *parent) :
     _button_box(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
         Qt::Horizontal, this)
 {
-    setMinimumSize(300, 300);
+    setMinimumWidth(360);
 
     _enable = new QCheckBox(this);
-
-    QLabel *lisa_label = new QLabel(this);
-    lisa_label->setPixmap(QPixmap(":/icons/math.svg"));
 
     _math_group = new QGroupBox(this);
     QHBoxLayout *type_layout = new QHBoxLayout();
@@ -79,9 +76,10 @@ MathOptions::MathOptions(SigSession *session, QWidget *parent) :
     QHBoxLayout *src1_layout = new QHBoxLayout();
     QHBoxLayout *src2_layout = new QHBoxLayout();
 
-    src1_layout->setContentsMargins(5, 15, 5, 5);
-    src2_layout->setContentsMargins(5, 15, 5, 5);
-    type_layout->setContentsMargins(5, 15, 5, 5);
+    for (QHBoxLayout *l : {src1_layout, src2_layout, type_layout}){
+        l->setContentsMargins(12, 10, 12, 12);
+        l->setSpacing(16);
+    }
 
     for(auto s : _session->get_signals()) {
         if (s->signal_type() == SR_CHANNEL_DSO) {
@@ -97,6 +95,9 @@ MathOptions::MathOptions(SigSession *session, QWidget *parent) :
             _src2_radio.append(yradio);
         }
     }
+    src1_layout->addStretch(1);
+    src2_layout->addStretch(1);
+    type_layout->addStretch(1);
     _src1_group->setLayout(src1_layout);
     _src2_group->setLayout(src2_layout);
 
@@ -145,14 +146,15 @@ MathOptions::MathOptions(SigSession *session, QWidget *parent) :
     }
 
     _layout = new QGridLayout(); 
-    _layout->setSpacing(0);
-    _layout->addWidget(lisa_label, 0, 0, 1, 2, Qt::AlignCenter);
-    _layout->addWidget(_enable, 1, 0, 1, 1);
-    _layout->addWidget(_math_group, 2, 0, 1, 2);
-    _layout->addWidget(_src1_group, 3, 0, 1, 1);
-    _layout->addWidget(_src2_group, 3, 1, 1, 1);
-    _layout->addWidget(new QLabel(this), 4, 1, 1, 1);
-    _layout->addWidget(&_button_box, 5, 1, 1, 1, Qt::AlignHCenter | Qt::AlignBottom);
+    _layout->setHorizontalSpacing(12);
+    _layout->setVerticalSpacing(12);
+    _layout->setColumnStretch(0, 1);
+    _layout->setColumnStretch(1, 1);
+    _layout->addWidget(_enable, 0, 0, 1, 2);
+    _layout->addWidget(_math_group, 1, 0, 1, 2);
+    _layout->addWidget(_src1_group, 2, 0, 1, 1);
+    _layout->addWidget(_src2_group, 2, 1, 1, 1);
+    _layout->addWidget(&_button_box, 3, 0, 1, 2);
 
     layout()->addLayout(_layout);
 
@@ -169,7 +171,7 @@ MathOptions::~MathOptions()
 
 void MathOptions::retranslateUi()
 {
-    _enable->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_ENABLE), "Enable"));
+    _enable->setText(QString(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_ENABLE), "Enable")).remove(':').trimmed());
     _math_group->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_MATH_TYPE), "Math Type"));
     _src1_group->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_1ST_SOURCE), "1st Source"));
     _src2_group->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_2ST_SOURCE), "2st Source"));

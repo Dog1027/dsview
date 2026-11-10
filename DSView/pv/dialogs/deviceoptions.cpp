@@ -139,10 +139,7 @@ DeviceOptions::DeviceOptions(QWidget *parent) :
     props_box->setLayout(props_lay);
     _container_lay->addWidget(props_box);
 
-    QWidget *minWid = new QWidget();
-    minWid->setFixedHeight(1);
-    minWid->setMinimumWidth(230);
-    _container_lay->addWidget(minWid);
+    props_box->setMinimumWidth(230);
 
     // chnnels group box
     this->build_dynamic_panel();

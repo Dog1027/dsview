@@ -53,12 +53,9 @@ LissajousOptions::LissajousOptions(SigSession *session, QWidget *parent) :
     _percent = NULL;
     _layout = NULL;
 
-    setMinimumSize(300, 300);
+    setMinimumWidth(360);
 
     _enable = new QCheckBox(this);
-
-    QLabel *lisa_label = new QLabel(this);
-    lisa_label->setPixmap(QPixmap(":/icons/lissajous.svg"));
 
     _percent = new QSlider(Qt::Horizontal, this);
     _percent->setRange(100, 100);
@@ -75,8 +72,10 @@ LissajousOptions::LissajousOptions(SigSession *session, QWidget *parent) :
     QHBoxLayout *xlayout = new QHBoxLayout();
     QHBoxLayout *ylayout = new QHBoxLayout();
 
-    xlayout->setContentsMargins(5, 15, 5, 5);
-    ylayout->setContentsMargins(5, 15, 5, 5);
+    for (QHBoxLayout *l : {xlayout, ylayout}){
+        l->setContentsMargins(12, 10, 12, 12);
+        l->setSpacing(16);
+    }
 
     for(auto s : _session->get_signals()) {
         if (s->signal_type() == SR_CHANNEL_DSO) {
@@ -92,6 +91,8 @@ LissajousOptions::LissajousOptions(SigSession *session, QWidget *parent) :
             _y_radio.append(yradio);
         }
     }
+    xlayout->addStretch(1);
+    ylayout->addStretch(1);
     _x_group->setLayout(xlayout);
     _y_group->setLayout(ylayout);
 
@@ -129,14 +130,15 @@ LissajousOptions::LissajousOptions(SigSession *session, QWidget *parent) :
     }
 
     _layout = new QGridLayout();
-    _layout->setSpacing(0);
-    _layout->addWidget(lisa_label, 0, 0, 1, 2, Qt::AlignCenter);
-    _layout->addWidget(_enable, 1, 0, 1, 1);
-    _layout->addWidget(_percent, 2, 0, 1, 2);
-    _layout->addWidget(_x_group, 3, 0, 1, 1);
-    _layout->addWidget(_y_group, 3, 1, 1, 1);
-    _layout->addWidget(new QLabel(this), 4, 1, 1, 1);
-    _layout->addWidget(&_button_box, 5, 1, 1, 1, Qt::AlignHCenter | Qt::AlignBottom);
+    _layout->setHorizontalSpacing(12);
+    _layout->setVerticalSpacing(12);
+    _layout->setColumnStretch(0, 1);
+    _layout->setColumnStretch(1, 1);
+    _layout->addWidget(_enable, 0, 0, 1, 2);
+    _layout->addWidget(_percent, 1, 0, 1, 2);
+    _layout->addWidget(_x_group, 2, 0, 1, 1);
+    _layout->addWidget(_y_group, 2, 1, 1, 1);
+    _layout->addWidget(&_button_box, 3, 0, 1, 2);
 
     layout()->addLayout(_layout);
 
@@ -153,7 +155,7 @@ LissajousOptions::~LissajousOptions()
 
 void LissajousOptions::retranslateUi()
 {
-    _enable->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_ENABLE), "Enable"));
+    _enable->setText(QString(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_ENABLE), "Enable")).remove(':').trimmed());
     _x_group->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_X_AXIS), "X-axis"));
     _y_group->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_Y_AXIS), "Y-axis"));
     setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_LISSAJOUS_OPTIONS), "Lissajous Options"));

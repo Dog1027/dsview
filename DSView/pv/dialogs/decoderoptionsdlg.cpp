@@ -127,8 +127,6 @@ void DecoderOptionsDlg::load_options_view()
     _end_comboBox->addItem("End"); 
     _start_comboBox->setMinimumContentsLength(7);
     _end_comboBox->setMinimumContentsLength(7);
-    _start_comboBox->setMinimumWidth(30);
-    _end_comboBox->setMinimumWidth(30);
     
     // Add cursor list
     auto view = _trace->get_view();

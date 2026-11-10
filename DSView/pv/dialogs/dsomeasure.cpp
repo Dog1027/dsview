@@ -28,6 +28,8 @@
 #include <QLabel>
 #include <QTabBar>
 #include <QBitmap>
+#include <QPushButton>
+#include <QTimer>
  
 #include "../dsvdef.h"
 
@@ -51,10 +53,9 @@ DsoMeasure::DsoMeasure(SigSession *session, View &parent,
 {
     _measure_tab = NULL;
 
-    setMinimumSize(500, 400);
-
+    // One tab per channel, across the top.
     _measure_tab = new QTabWidget(this);
-    _measure_tab->setTabPosition(QTabWidget::West);
+    _measure_tab->setTabPosition(QTabWidget::North);
     _measure_tab->setUsesScrollButtons(false);
 
     for(auto s : _session->get_signals()) {
@@ -62,17 +63,25 @@ DsoMeasure::DsoMeasure(SigSession *session, View &parent,
             view::DsoSignal *dsoSig = (view::DsoSignal*)s;
             QWidget *measure_widget = new QWidget(this);
             this->add_measure(measure_widget, dsoSig);
-            _measure_tab->addTab(measure_widget, QString::number(dsoSig->get_index()));
-            _measure_tab->tabBar()->setMinimumHeight(30);
-            _measure_tab->tabBar()->setPalette(QPalette(Qt::red));
+            _measure_tab->addTab(measure_widget, dsoSig->get_name());
             measure_widget->setProperty("index", dsoSig->get_index());
             if (dsoSig->get_index() == last_sig_index)
                 _measure_tab->setCurrentIndex(last_sig_index);
         }
     }
 
+    // Neither Reset nor Cancel is "the" action: picking a measurement is.
+    for (QAbstractButton *b : _button_box.buttons()){
+        if (QPushButton *pb = qobject_cast<QPushButton*>(b))
+            pb->setAutoDefault(false);
+    }
+    // Start with focus on the tabs, not on Reset (would look selected).
+    // (After the dialog is shown: QDialog picks its first focus on show.)
+    QTimer::singleShot(0, _measure_tab, [this]{ _measure_tab->setFocus(); });
+
+    _layout.setSpacing(12);
     _layout.addWidget(_measure_tab);
-    _layout.addWidget(&_button_box, Qt::AlignHCenter | Qt::AlignBottom);
+    _layout.addWidget(&_button_box);
 
     layout()->addLayout(&_layout);
     setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_MEASUREMENTS), "Measurements"));
@@ -91,7 +100,9 @@ void DsoMeasure::add_measure(QWidget *widget, const view::DsoSignal *dsoSig)
     const int Column = 5;
     const int IconSizeForText = 5;
     QGridLayout *layout = new QGridLayout(widget);
-    layout->setSpacing(0);
+    layout->setContentsMargins(0, 12, 0, 0);
+    layout->setHorizontalSpacing(8);
+    layout->setVerticalSpacing(2);
 
     pv::view::DsoSignal *psig = const_cast<pv::view::DsoSignal*>(dsoSig);
     
@@ -112,7 +123,7 @@ void DsoMeasure::add_measure(QWidget *widget, const view::DsoSignal *dsoSig)
                           ((i-1)/Column)*IconSizeForText+4, (i-1)%Column,
                           1, 1,
                           Qt::AlignCenter);
-        layout->setColumnMinimumWidth((i-1)%Column, this->width()/Column);
+        layout->setColumnMinimumWidth((i-1)%Column, 96);
 
         connect(button, SIGNAL(clicked()), this, SLOT(accept()));
     }

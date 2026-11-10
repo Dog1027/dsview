@@ -22,6 +22,7 @@
 #include "calibration.h"
   
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QFuture>
 #include <QProgressDialog>
 #include <QtConcurrent/QtConcurrent>
@@ -65,7 +66,7 @@ Calibration::Calibration(QWidget *parent) :
     Qt::WindowFlags flags = windowFlags();
     this->setWindowFlags(flags | Qt::Tool);
 #endif
-    this->setFixedSize(450, 300);
+    this->setMinimumWidth(450);   // height follows the number of channels
     this->setWindowOpacity(0.7);
     this->setModal(false);
 
@@ -77,26 +78,27 @@ Calibration::Calibration(QWidget *parent) :
     _exit_btn = new QPushButton(this);
 
     _flayout = new QFormLayout();
-    _flayout->setVerticalSpacing(10);
     _flayout->setFormAlignment(Qt::AlignLeft);
     _flayout->setLabelAlignment(Qt::AlignLeft);
     _flayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    QGridLayout *glayout = new QGridLayout();
-    glayout->setVerticalSpacing(5);
+    // Buttons: Reset / Abort at the left; Exit and Save (the action, blue)
+    // at the right end.
+    QHBoxLayout *buttons = new QHBoxLayout();
+    buttons->setSpacing(8);
+    buttons->addWidget(_reset_btn);
+    buttons->addWidget(_abort_btn);
+    buttons->addStretch(1);
+    buttons->addWidget(_exit_btn);
+    buttons->addWidget(_save_btn);
+    for (QPushButton *b : {_reset_btn, _abort_btn, _exit_btn, _save_btn}){
+        b->setAutoDefault(false);
+        b->setMinimumWidth(72);
+    }
+    _save_btn->setDefault(true);
 
-    glayout->addLayout(_flayout, 1, 0, 1, 7);
-    glayout->addWidget(_save_btn, 2, 0);
-    glayout->addWidget(new QWidget(this), 2, 1);
-    glayout->setColumnStretch(1, 1);
-    glayout->addWidget(_abort_btn, 2, 2);
-    glayout->addWidget(new QWidget(this), 2, 3);
-    glayout->setColumnStretch(3, 1);
-    glayout->addWidget(_reset_btn, 2, 4);
-    glayout->addWidget(new QWidget(this), 2, 5);
-    glayout->setColumnStretch(5, 1);
-    glayout->addWidget(_exit_btn, 2, 6);
-
-    layout()->addLayout(glayout);
+    layout()->setSpacing(16);
+    layout()->addLayout(_flayout);
+    layout()->addLayout(buttons);
 
     BuildUI();
 
@@ -136,7 +138,8 @@ void Calibration::BuildUI()
     }
     assert(_params.empty());
 
-    _flayout->setSpacing(15);
+    _flayout->setHorizontalSpacing(12);
+    _flayout->setVerticalSpacing(8);
 
     for (const GSList *l = _device_agent->get_channels(); l; l = l->next) {
         sr_channel *const probe = (sr_channel*)l->data;
@@ -183,10 +186,6 @@ void Calibration::BuildUI()
             connect(comp_slider, SIGNAL(valueChanged(int)), this, SLOT(set_value(int)));
         }
     }
-
-    QWidget *spaceLine = new QWidget();
-    spaceLine->setFixedHeight(10);
-    _flayout->addRow(spaceLine);
 }
 
 void Calibration::update_device_info()
