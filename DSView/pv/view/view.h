@@ -80,6 +80,8 @@ private:
 
 	static const int MaxScrollValue;
     static const int MaxHeightUnit;
+    static const double MaxVerticalZoom;
+    static const int MaxZoomedSignalHeight;
 
 public:
     //static const int SignalHeight;
@@ -209,6 +211,15 @@ public:
     }
 
 	void normalize_layout();
+
+    // Vertical zoom of the logic channels (Ctrl + wheel). `factor` > 1
+    // makes the channels taller; `anchor_y` stays over the same channel.
+    void v_zoom(double factor, int anchor_y);
+    // Scroll the channels vertically by `dy` pixels (only when zoomed).
+    void v_scroll_by(int dy);
+    inline bool v_zoomed(){
+        return _v_zoom > 1.0;
+    }
 
     void show_trig_cursor(bool show = true);
 
@@ -460,6 +471,9 @@ private:
     int         _spanY;
     int         _signalHeight;
     bool        _updating_scroll;
+    double      _v_zoom;        // logic channel height factor, >= 1
+    int         _v_scroll;      // vertical scroll position, in pixels
+    int         _v_scroll_max;
 
     // trigger position fix
     double      _trig_hoff;

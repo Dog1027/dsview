@@ -335,7 +335,11 @@ void Header::wheelEvent(QWheelEvent *event)
     pos = event->pos(); 
 #endif
 
-    if (isVertical)
+    if (isVertical && (event->modifiers() & Qt::ControlModifier))
+    {
+        _view.v_zoom(delta > 0 ? 1.25 : 0.8, pos.y());
+    }
+    else if (isVertical)
     {
         std::vector<Trace*> traces;
         _view.get_traces(ALL_VIEW, traces);
@@ -366,11 +370,18 @@ void Header::wheelEvent(QWheelEvent *event)
         shift = delta / 80.0;
 #endif
 
+        bool used = false;
         for (auto t : traces)
         {
-            if (t->mouse_wheel(width(), pos, shift))
+            if (t->mouse_wheel(width(), pos, shift)){
+                used = true;
                 break;
+            }
         }
+
+        // Nothing under the mouse takes the wheel: scroll the channels.
+        if (!used && _view.v_zoomed())
+            _view.v_scroll_by(-delta * _view.get_signalHeight() / 120);
 
         update();
     }

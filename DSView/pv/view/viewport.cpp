@@ -1374,6 +1374,18 @@ void Viewport::wheelEvent(QWheelEvent *event)
             }
         }
     }
+    else if (_type == TIME_VIEW && isVertical
+             && (event->modifiers() & Qt::ControlModifier))
+    {
+        // Ctrl + wheel: make the channels taller / shorter.
+        _view.v_zoom(delta > 0 ? 1.25 : 0.8, (int)event->position().y());
+    }
+    else if (_type == TIME_VIEW && isVertical && _view.v_zoomed()
+             && (event->modifiers() & Qt::ShiftModifier))
+    {
+        // Shift + wheel: scroll the zoomed channels up / down.
+        _view.v_scroll_by(-delta * _view.get_signalHeight() / 120);
+    }
     else if (_type == TIME_VIEW)
     {
         static bool bLstTime = false;

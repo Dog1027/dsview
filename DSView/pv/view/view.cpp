@@ -62,6 +62,8 @@ const int View::RulerHeight = 50;
 
 const int View::MaxScrollValue = INT_MAX / 2;
 const int View::MaxHeightUnit = 20;
+const double View::MaxVerticalZoom = 16.0;
+const int View::MaxZoomedSignalHeight = 400;
 
 //const int View::SignalHeight = 30;s
 const int View::SignalMargin = 7;
@@ -97,7 +99,10 @@ View::View(SigSession *session, pv::toolbars::SamplingBar *sampling_bar, QWidget
     _hover_point(-1, -1),
     _dso_auto(true),
     _show_lissajous(false),
-    _back_ready(false)
+    _back_ready(false),
+    _v_zoom(1.0),
+    _v_scroll(0),
+    _v_scroll_max(0)
 {  
    _trig_cursor = NULL;
    _search_cursor = NULL;
@@ -578,6 +583,11 @@ void View::set_search_pos(uint64_t search_pos, bool hit)
 
 void View::normalize_layout()
 {   
+    // The logic layout is rebuilt from scratch by signals_changed(); its
+    // offsets may be negative because of vertical scrolling.
+    if (_device_agent->get_work_mode() == LOGIC)
+        return;
+
     int v_min = INT_MAX;
     std::vector<Trace*> traces;
     get_traces(ALL_VIEW, traces);
@@ -635,8 +645,36 @@ void View::update_scroll()
 	_updating_scroll = false;
 
 	// Set the vertical scrollbar
+	_updating_scroll = true;
 	verticalScrollBar()->setPageStep(areaSize.height());
-    verticalScrollBar()->setRange(0,0);
+    verticalScrollBar()->setSingleStep(max(1, _signalHeight));
+    verticalScrollBar()->setRange(0, _v_scroll_max);
+    verticalScrollBar()->setValue(_v_scroll);
+	_updating_scroll = false;
+}
+
+void View::v_zoom(double factor, int anchor_y)
+{
+    if (_device_agent->get_work_mode() != LOGIC)
+        return;
+
+    double zoom = max(1.0, min(_v_zoom * factor, MaxVerticalZoom));
+    if (zoom == _v_zoom)
+        return;
+
+    // Keep the point under the mouse over the same channel.
+    _v_scroll = (int)((anchor_y + _v_scroll) * zoom / _v_zoom) - anchor_y;
+    _v_zoom = zoom;
+    signals_changed(NULL);
+    set_all_update(true);
+    viewport_update();
+}
+
+void View::v_scroll_by(int dy)
+{
+    if (_v_scroll_max == 0)
+        return;
+    verticalScrollBar()->setValue(_v_scroll + dy);
 }
 
 void View::update_scale_offset()
@@ -770,6 +808,9 @@ void View::signals_changed(const Trace* eventTrace)
             else {
                 _signalHeight = (height >= max_height) ? max_height : height;
             }
+
+            if (_v_zoom > 1.0)
+                _signalHeight = min(_signalHeight * _v_zoom, (double)MaxZoomedSignalHeight);
         }
         else if (_device_agent->get_work_mode() == DSO) {
             _signalHeight = (_header->height()
@@ -781,7 +822,23 @@ void View::signals_changed(const Trace* eventTrace)
         }
 
         _spanY = _signalHeight + 2 * actualMargin;
-        int next_v_offset = actualMargin;
+
+        // Vertical scrolling: only when zoomed, the channels can be taller
+        // than the view.
+        if (mode == LOGIC && _v_zoom > 1.0) {
+            int content = actualMargin;
+            for(auto t : time_traces) {
+                if (t->rows_size() != 0)
+                    content += _signalHeight * t->rows_size() + 2 * actualMargin;
+            }
+            _v_scroll_max = max(0, content - _time_viewport->height());
+        }
+        else {
+            _v_scroll_max = 0;
+        }
+        _v_scroll = max(0, min(_v_scroll, _v_scroll_max));
+
+        int next_v_offset = actualMargin - _v_scroll;
         
         //Make list by view-index;
         if (mode == LOGIC)
@@ -967,7 +1024,11 @@ void View::h_scroll_value_changed(int value)
 
 void View::v_scroll_value_changed(int value)
 {
-    (void)value;
+    if (!_updating_scroll && value != _v_scroll && _v_scroll_max > 0) {
+        _v_scroll = value;
+        signals_changed(NULL);
+        set_all_update(true);
+    }
 	_header->update();
     viewport_update();
 }
