@@ -92,6 +92,11 @@ public:
 	 * @param right the x-coordinate of the right edge of the signal.
 	 **/
     void paint_mid(QPainter &p, int left, int right, QColor fore, QColor back);
+    void paint_back(QPainter &p, int left, int right, QColor fore, QColor back) override;
+
+    // Colour of the wave: the channel colour (or the user's), tuned for the
+    // current theme so it reads on the waveform background.
+    QColor wave_colour(QColor fore);
 
     bool measure(const QPointF &p, uint64_t &index0, uint64_t &index1, uint64_t &index2);
 

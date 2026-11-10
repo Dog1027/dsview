@@ -197,6 +197,13 @@ Waveforms, the ruler, channel rows and cursors are painted in C++.
 - Chrome colours from `Theme::color()`; data colours as listed above.
 - Interactive marks (trigger buttons on channel rows) show only the
   current state until hovered.
+- Logic waves: the channel colour (`LogicSignal::wave_colour`, lightness
+  clamped per theme), a light tint of it under high levels, edges closer
+  than a pixel drawn lighter so bursts read as a band. The lane line is
+  a faint line at the low level in the channel colour.
+- Decoder rows: annotations are rounded bars with a 1 px gap; the text
+  shrinks to the row height. Row titles are chips (`@bg`, muted text) on
+  top of the annotations. "Zoom in for details" is muted.
 - Leave room for labels at both ends of the time axis (`View::edge_pad`).
   Code that turns view pixels into sample indexes must cope with the
   negative offset there.

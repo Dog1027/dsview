@@ -95,6 +95,41 @@ bool LogicSignal::commit_trig()
     }
 }
 
+QColor LogicSignal::wave_colour(QColor fore)
+{
+    QColor c = _colour;
+    if (!c.isValid() && !_index_list.empty())
+        c = PROBE_COLORS[*_index_list.begin() % countof(PROBE_COLORS)];
+    if (!c.isValid())
+        return fore;
+
+    // Dark background: at least medium-light; light background: at most
+    // medium-dark (yellow on white would vanish otherwise).
+    const QColor bg = ui::Theme::Instance().color("bg", QColor(30, 30, 30));
+    const bool dark = bg.lightness() < 128;
+    int h, sat, l, a;
+    c.getHsl(&h, &sat, &l, &a);
+    if (dark)
+        l = std::max(l, 150);
+    else
+        l = std::min(l, 100);
+    c.setHsl(h, sat, l, a);
+    return c;
+}
+
+// The lane of the channel: a faint line at the low level, in the channel
+// colour (instead of a dotted centre line).
+void LogicSignal::paint_back(QPainter &p, int left, int right, QColor fore, QColor back)
+{
+    (void)back;
+
+    QColor c = wave_colour(fore);
+    c.setAlpha(enabled() ? 70 : 30);
+    p.setPen(c);
+    const int low = get_y() + _totalHeight * 0.5 + 0.5f;
+    p.drawLine(left, low, right, low);
+}
+
 void LogicSignal::paint_mid(QPainter &p, int left, int right, QColor fore, QColor back)
 {
     uint64_t end_align_sample = _data->get_ring_sample_count() - 1;
@@ -169,6 +204,16 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
     int preY = first_sample ? high_offset : low_offset;
     int x = preX;
     std::vector<QLine> wave_lines;
+    // Spans at the high level (and dense spans), filled with a light tint
+    // of the wave colour under the lines.
+    std::vector<QRect> high_spans;
+    // Edges too close to tell apart (several per pixel): lighter lines, so
+    // a burst reads as a band, not a solid block.
+    std::vector<QLine> dense_lines;
+    auto add_high = [&](int x0, int x1) {
+        if (x1 > x0)
+            high_spans.push_back(QRect(x0, high_offset, x1 - x0, low_offset - high_offset));
+    };
     
     if (_cur_edges.size() < max_togs) {
         std::vector<std::pair<uint16_t, bool>>::const_iterator i;
@@ -176,30 +221,61 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
             x = (*i).first;
             wave_lines.push_back(QLine(preX, preY, x, preY));
             wave_lines.push_back(QLine(x, high_offset, x, low_offset));
+            if (preY == high_offset)
+                add_high(preX, x);
             preX = x;
             preY = (*i).second ? high_offset : low_offset;
         }
         x = (*i).first;
         wave_lines.push_back(QLine(preX, preY, x, preY));
+        if (preY == high_offset)
+            add_high(preX, x);
     }
     else if (_cur_pulses.size() > 0) {
         std::vector<std::pair<bool, bool>>::const_iterator i = _cur_pulses.begin();
+        int run = -1;   // start of the current high / dense run
         while (i != _cur_pulses.end() - 1) {
             if ((*i).first) {
                 wave_lines.push_back(QLine(preX, preY, x, preY));
-                wave_lines.push_back(QLine(x, high_offset, x, low_offset));
+                if (x - preX <= 1)
+                    dense_lines.push_back(QLine(x, high_offset, x, low_offset));
+                else
+                    wave_lines.push_back(QLine(x, high_offset, x, low_offset));
                 preX = x;
                 preY = (*i).second ? high_offset : low_offset;
+            }
+            const bool hi = (*i).first || preY == high_offset;
+            if (hi && run < 0)
+                run = x;
+            else if (!hi && run >= 0){
+                add_high(run, x);
+                run = -1;
             }
             x++;
             i++;
         }
         wave_lines.push_back(QLine(preX, preY, x, preY));
+        if (run < 0 && preY == high_offset)
+            run = preX;
+        if (run >= 0)
+            add_high(run, x);
     }
+
+    const QColor wave = wave_colour(fore);
+    QColor tint = wave;
+    tint.setAlpha(ui::Theme::Instance().color("bg", Qt::black).lightness() < 128 ? 46 : 38);
 
     p.save();
     p.translate(shift, 0);
-    p.setPen(_colour.isValid() ? _colour : fore);
+    for (const QRect &r : high_spans)
+        p.fillRect(r, tint);
+    if (!dense_lines.empty()){
+        QColor d = wave;
+        d.setAlpha(110);
+        p.setPen(d);
+        p.drawLines(dense_lines.data(), dense_lines.size());
+    }
+    p.setPen(wave);
     p.drawLines(wave_lines.data(), wave_lines.size());
     p.restore();
 }

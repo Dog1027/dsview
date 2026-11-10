@@ -52,6 +52,7 @@
 #include "../ui/langresource.h"
 #include "../config/appconfig.h"
 #include "../log.h"
+#include "../ui/theme.h"
 
 using namespace boost;
 using namespace std;
@@ -155,11 +156,10 @@ void DecodeTrace::paint_back(QPainter &p, int left, int right, QColor fore, QCol
 {
     (void)back;
 
+    // Faint lane line under the first annotation row.
     QColor backFore = fore;
-    backFore.setAlpha(View::BackAlpha);
-    QPen pen(backFore);
-    pen.setStyle(Qt::DotLine);
-    p.setPen(pen);
+    backFore.setAlpha(40);
+    p.setPen(backFore);
     const double sigY = get_y() - (_totalHeight - _view->get_signalHeight())*0.5;
     p.drawLine(left, sigY, right, sigY);
 
@@ -185,31 +185,6 @@ void DecodeTrace::paint_back(QPainter &p, int left, int right, QColor fore, QCol
     p.drawPolygon(start_points, countof(start_points));
     p.drawPolygon(end_points, countof(end_points));
 
-    // --draw headings
-    const int row_height = _view->get_signalHeight();
-    for (size_t i = 0; i < _cur_row_headings.size(); i++)
-    {
-        const int y = i * row_height + get_y() - _totalHeight * 0.5;
-
-        p.setPen(QPen(Qt::NoPen));
-        p.setBrush(QApplication::palette().brush(QPalette::WindowText));
-
-        const QRect r(left + ArrowSize * 2, y,
-            right - left, row_height / 2);
-        const QString h(_cur_row_headings[i]);
-        const int f = Qt::AlignLeft | Qt::AlignVCenter |
-            Qt::TextDontClip;
-        const QPointF points[] = {
-            QPointF(left, r.center().y() - ArrowSize),
-            QPointF(left + ArrowSize, r.center().y()),
-            QPointF(left, r.center().y() + ArrowSize)
-        };
-        p.drawPolygon(points, countof(points));
-
-        // Draw the text
-        p.setPen(fore);
-        p.drawText(r, f, h);
-    }
 }
 
 void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColor back)
@@ -256,6 +231,15 @@ void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColo
     // Iterate through the rows
     assert(_view);
     int y =  get_y() - (_totalHeight - annotation_height)*0.5;
+
+    // Annotation text fits inside the bar (rows can be only ~11 px high).
+    p.save();
+    {
+        QFont font = p.font();
+        if (QFontMetrics(font).height() > annotation_height - 1)
+            font.setPixelSize(std::max(7, annotation_height - 3));
+        p.setFont(font);
+    }
 
     assert(_decoder_stack);
 
@@ -310,17 +294,49 @@ void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColo
             _cur_row_headings.push_back(dec->decoder()->name);
         }
     }
+    p.restore();
 }
 
 void DecodeTrace::paint_fore(QPainter &p, int left, int right, QColor fore, QColor back)
 {
-	using namespace pv::data::decode;
-
-    (void)p;
-    (void)left;
-	(void)right;
+    (void)right;
     (void)fore;
     (void)back;
+
+    // Row titles: small chips at the left edge, on top of the annotations,
+    // so they stay readable where an annotation runs under them.
+    const ui::Theme &theme = ui::Theme::Instance();
+    QColor chip = theme.color("bg", QColor(30, 30, 30));
+    chip.setAlpha(225);
+    const QColor text = theme.color("text-muted", QColor(150, 150, 150));
+
+    const int row_height = _view->get_signalHeight();
+    if (row_height <= 4)
+        return;
+
+    p.save();
+    QFont font = p.font();
+    if (QFontMetrics(font).height() > row_height)
+        font.setPixelSize(std::max(7, row_height - 2));
+    p.setFont(font);
+    const QFontMetrics fm(font);
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    for (size_t i = 0; i < _cur_row_headings.size(); i++)
+    {
+        const int top = i * row_height + get_y() - _totalHeight * 0.5;
+        const QString h(_cur_row_headings[i]);
+        const int w = fm.horizontalAdvance(h) + 10;
+        const int ch = std::min(row_height, fm.height() + 2);
+        const QRectF r(left + 4, top + (row_height - ch) / 2.0, w, ch);
+
+        p.setPen(Qt::NoPen);
+        p.setBrush(chip);
+        p.drawRoundedRect(r, 3, 3);
+        p.setPen(text);
+        p.drawText(r, Qt::AlignCenter, h);
+    }
+    p.restore();
 }
  
 void DecodeTrace::draw_annotation(const pv::data::decode::Annotation &a,
@@ -410,13 +426,22 @@ void DecodeTrace::draw_nodetail(QPainter &p,
     (void)base_colour;
     (void)back;
 
+    p.save();
+    QFont font = p.font();
+    if (QFontMetrics(font).height() > h)
+        font.setPixelSize(std::max(7, h - 2));
+    p.setFont(font);
+
     const QRectF nodetail_rect(left, y - h/2 + 0.5, right - left, h);
     QString info = L_S(STR_PAGE_DLG, S_ID(ZOOM_IN_FOR_DETAILS), "Zoom in for details");
     int info_left = nodetail_rect.center().x() - p.boundingRect(QRectF(), 0, info).width();
     int info_right = nodetail_rect.center().x() + p.boundingRect(QRectF(), 0, info).width();
     int height = p.boundingRect(QRectF(), 0, info).height();
 
-    p.setPen(fore);
+    QColor muted = ui::Theme::Instance().color("text-muted", fore);
+    QColor line = muted;
+    line.setAlpha(90);
+    p.setPen(line);
     p.drawLine(left, y, info_left, y);
     p.drawLine(info_right, y, right, y);
     p.drawLine(info_left, y, info_left+5, y - height/2 + 0.5);
@@ -424,8 +449,9 @@ void DecodeTrace::draw_nodetail(QPainter &p,
     p.drawLine(info_right, y, info_right-5, y - height/2 + 0.5);
     p.drawLine(info_right, y, info_right-5, y + height/2 + 0.5);
     
-    p.setPen(fore);
+    p.setPen(muted);
     p.drawText(nodetail_rect, Qt::AlignCenter | Qt::AlignVCenter, info);
+    p.restore();
 }
 
 void DecodeTrace::draw_instant(const pv::data::decode::Annotation &a, QPainter &p,
@@ -471,17 +497,17 @@ void DecodeTrace::draw_range(const pv::data::decode::Annotation &a, QPainter &p,
 
     double cap_width = min((end - start) / 4, EndCapWidth);
 
-	QPointF pts[] = {
-		QPointF(start, y + .5f),
-		QPointF(start + cap_width, top),
-		QPointF(end - cap_width, top),
-		QPointF(end, y + .5f),
-		QPointF(end - cap_width, bottom),
-		QPointF(start + cap_width, bottom)
-	};
-
-    p.setPen(back);
-    p.drawConvexPolygon(pts, countof(pts));
+    // A rounded bar, 1 px inset on every side, so neighbours and rows
+    // stay apart.
+    (void)back;
+    const double gap = (bottom - top) > 8 ? 1.0 : 0.5;
+    const QRectF bar(start + gap, top + gap, end - start - 2 * gap, bottom - top - 2 * gap);
+    const double radius = std::min(4.0, std::min(bar.height(), bar.width()) / 2);
+    p.save();
+    p.setRenderHint(QPainter::Antialiasing, true);
+    p.setPen(Qt::NoPen);
+    p.drawRoundedRect(bar, radius, radius);
+    p.restore();
 
 	if (annotations.empty())
 		return;
