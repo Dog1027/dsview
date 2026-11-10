@@ -31,9 +31,6 @@
 @danger:         #f14c4c;
 @danger-hover:   #f36d6d;
 @close-hover:    #e81123;   /* window close button */
-@window-button:         #2e2e2e;   /* round window buttons (Linux) */
-@window-button-hover:   #3a3a3a;
-@window-button-pressed: #474747;
 
 /* icon set used in url(...) */
 @icons:          :/dark;

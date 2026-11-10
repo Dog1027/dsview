@@ -67,18 +67,18 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
     const int barHeight = top ? 35 : 32;
 
     // Window buttons. On Windows: wide, full-height buttons (red close).
-    // Elsewhere: GNOME/Adwaita-like small round buttons, as VS Code shows
+    // Elsewhere: compact buttons with just a thin glyph, as VS Code shows
     // them on Linux. Their look is in theme.qss ("Window title bar").
 #ifdef _WIN32
     const QSize buttonSize(46, barHeight);
     const int buttonGap = 0;
     const int rightMargin = 0;
-    const bool roundButtons = false;
+    const bool compactButtons = false;
 #else
-    const QSize buttonSize(24, 24);
-    const int buttonGap = 10;
-    const int rightMargin = (barHeight - 24) / 2 + 2;
-    const bool roundButtons = true;
+    const QSize buttonSize(32, barHeight - 8);
+    const int buttonGap = 2;
+    const int rightMargin = 6;
+    const bool compactButtons = true;
 #endif
 
     QHBoxLayout *lay1 = new QHBoxLayout(this);
@@ -93,7 +93,7 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
 
     auto setupButton = [&](QToolButton *bt, const char *name) {
         bt->setObjectName(name);
-        bt->setProperty("round", roundButtons);
+        bt->setProperty("compact", compactButtons);
         bt->setFixedSize(buttonSize);
         bt->setIconSize(QSize(16, 16));
         bt->setFocusPolicy(Qt::NoFocus);
