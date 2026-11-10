@@ -1,96 +1,39 @@
-BreezeStyleSheets
-=================
+DSView themes
+=============
 
-Breeze and BreezeDark-like stylesheets for Qt Applications.
+The stylesheet started from BreezeStyleSheets (see LICENSE.md) and has been
+reworked into one template plus a palette per theme.
 
-C++ Installation
-================
+| File            | What it is                                                    |
+|-----------------|---------------------------------------------------------------|
+| `theme.qss`     | The stylesheet template. Colors are `@name` tokens.          |
+| `dark.palette`  | Values of the tokens for the dark theme.                      |
+| `light.palette` | Values of the tokens for the light theme.                     |
+| `dark/`, `light/` | Icons used by the stylesheet (`url(@icons/...)`).           |
+| `breeze.qrc`    | Compiles all of the above into the executable.               |
 
-Copy `breeze.qrc`, `dark.qss`, `light.qss` and the `dark` and `light` folders into your project directory and add the qrc file to your project file.
+Palette format: `@name: value;` — a value may refer to another entry
+(`@divider: @hover;`). `/* comments */` are allowed. A token used in
+`theme.qss` but missing from the palette is reported in the log.
 
-For example:
+Live editing
+------------
 
-```qmake
-TARGET = app
-SOURCES = main.cpp
-RESOURCES = breeze.qrc
+Without live editing, a change needs `make` and a restart. To see changes
+immediately, start DSView with the source directory of the themes:
+
+```bash
+DSVIEW_THEME_DIR=~/projects/dsview/DSView/themes ./build.dir/DSView
 ```
 
-To load the stylesheet in C++, load the file using QFile and read the data. For example, to load BreezeDark, run:
+Every save of `theme.qss` or a palette is applied to the running program.
+(The icons in `dark/` and `light/` are still read from the compiled
+resources, so changes to them need a rebuild.)
 
-```cpp
+Top toolbar layout
+------------------
 
-#include <QApplication>
-#include <QFile>
-#include <QTextStream>
-
-
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
-
-    // set stylesheet
-    QFile file(":/dark.qss");
-    file.open(QFile::ReadOnly | QFile::Text);
-    QTextStream stream(&file);
-    app.setStyleSheet(stream.readAll());
-
-    // code goes here
-
-    return app.exec();
-}
-```
-
-PyQt5 Installation
-==================
-
-To compile the stylesheet for use with PyQt5, compile with the following command `pyrcc5 breeze.qrc -o breeze_resources.py`, and import the stylesheets. Afterwards, to load the stylesheet in Python, load the file using QFile and read the data. For example, to load BreezeDark, run:
-
-
-```python
-
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QFile, QTextStream
-import breeze_resources
-
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-
-    # set stylesheet
-    file = QFile(":/dark.qss")
-    file.open(QFile.ReadOnly | QFile.Text)
-    stream = QTextStream(file)
-    app.setStyleSheet(stream.readAll())
-
-    # code goes here
-
-    app.exec_()
-}
-```
-
-License
-=======
-
-MIT, see [license](/LICENSE.md).
-
-Example
-=======
-
-**Breeze/BreezeDark**
-
-Example user interface using the Breeze and BreezeDark stylesheets side-by-side.
-
-![BreezeDark](/assets/Breeze.gif)
-
-Acknowledgements
-================
-
-BreezeStyleSheets is a fork of [QDarkStyleSheet](https://github.com/ColinDuquesnoy/QDarkStyleSheet).
-
-Contact
-=======
-
-Email: ahuszagh@gmail.com  
-Twitter: KardOnIce
-
+Which buttons appear in the top toolbar, their order, grouping and whether
+they show text is defined in `DSView/pv/toolbars/topbarlayout.h`.
+Its look (padding, the blue Start button, ...) is the "Main top bar"
+section at the end of `theme.qss`.

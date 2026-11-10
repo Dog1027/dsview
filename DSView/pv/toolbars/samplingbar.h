@@ -35,6 +35,7 @@
 #include "../interface/icallbacks.h"
 #include "../ui/xtoolbutton.h"
 #include "../ui/uimanager.h"
+#include "toolbaritemsource.h"
 
 struct st_dev_inst;
 class QAction;
@@ -59,7 +60,7 @@ namespace pv
     namespace toolbars
     {
 
-        class SamplingBar : public QToolBar, public IUiWindow
+        class SamplingBar : public ToolbarItemSource, public IUiWindow
         {
             Q_OBJECT
 

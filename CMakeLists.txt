@@ -302,6 +302,8 @@ set(DSView_SOURCES
     DSView/pv/data/mathstack.cpp
     DSView/pv/view/mathtrace.cpp   
     DSView/pv/toolbars/titlebar.cpp
+    DSView/pv/toolbars/toolbaritemsource.cpp
+    DSView/pv/toolbars/topbar.cpp
     DSView/pv/mainframe.cpp
     DSView/pv/widgets/border.cpp
     DSView/pv/dialogs/dsmessagebox.cpp
@@ -350,6 +352,7 @@ set(DSView_SOURCES
     DSView/pv/ui/fn.cpp
     DSView/pv/ui/xtoolbutton.cpp
     DSView/pv/ui/uimanager.cpp
+    DSView/pv/ui/theme.cpp
     DSView/pv/ui/popupdlglist.cpp
     DSView/pv/ui/xspinbox.cpp
     DSView/pv/ui/xprogressbar.cpp
@@ -448,6 +451,7 @@ set(DSView_HEADERS
     DSView/pv/deviceagent.h
     DSView/pv/ui/fn.h
     DSView/pv/ui/xtoolbutton.h
+    DSView/pv/ui/theme.h
 )
  
 #===============================================================================

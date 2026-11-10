@@ -33,13 +33,14 @@
 #include "../interface/icallbacks.h"
 #include "../ui/xtoolbutton.h"
 #include "../ui/uimanager.h"
+#include "toolbaritemsource.h"
 
 namespace pv {
 namespace toolbars {
 
 //The tool button for help,is a ui class,referenced by MainWindow
 //TODO: switch language,submit bug descript,
-class LogoBar : public QToolBar, public IUiWindow
+class LogoBar : public ToolbarItemSource, public IUiWindow
 {
     Q_OBJECT
 

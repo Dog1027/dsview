@@ -39,7 +39,7 @@ namespace pv {
 namespace toolbars {
  
 TrigBar::TrigBar(SigSession *session, QWidget *parent) :
-    QToolBar("Trig Bar", parent),
+    ToolbarItemSource("Trig Bar", parent),
     _session(session),
  
     _trig_button(this),
@@ -93,21 +93,15 @@ TrigBar::TrigBar(SigSession *session, QWidget *parent) :
     _setting_button.setPopupMode(QToolButton::InstantPopup);
     _setting_button.setMenu(_display_menu);
 
-    _trig_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    _protocol_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    _measure_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    _search_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    _function_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    _setting_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-
     _protocol_button.setContentsMargins(0,0,0,0);
 
-    _trig_action = addWidget(&_trig_button);
-    _protocol_action = addWidget(&_protocol_button);
-    _measure_action = addWidget(&_measure_button);
-    _search_action = addWidget(&_search_button);
-    _function_action = addWidget(&_function_button); 
-    _display_action = addWidget(&_setting_button); //must be created
+    // Placement and style of these items: topbarlayout.h
+    _trig_action = add_item("trigger", &_trig_button);
+    _protocol_action = add_item("decode", &_protocol_button);
+    _measure_action = add_item("measure", &_measure_button);
+    _search_action = add_item("search", &_search_button);
+    _function_action = add_item("function", &_function_button);
+    _display_action = add_item("display", &_setting_button); //must be created
 
     connect(&_trig_button, SIGNAL(clicked()),this, SLOT(trigger_clicked()));
     connect(&_protocol_button, SIGNAL(clicked()),this, SLOT(protocol_clicked()));
@@ -381,7 +375,7 @@ void TrigBar::UpdateFont()
 { 
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
-    ui::set_toolbar_font(this, font);
+    apply_font(font);
 }
 
 } // namespace toolbars

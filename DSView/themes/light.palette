@@ -1,0 +1,32 @@
+/*
+ * DSView light palette. Used by theme.qss as @name.
+ * Format: @name: value;   (value may reference another @name)
+ */
+
+/* backgrounds, from back to front */
+@bg:             #f7f8fa;
+@surface:        #ffffff;
+@hover:          #e8eaee;
+@border:         #c9ccd6;
+@handle:         #b4b8c2;
+@border-hover:   #a8adbd;
+
+/* text */
+@text:           #1e1f22;
+@text-bright:    #000000;
+@text-muted:     #6c707e;
+@text-disabled:  #a8adbd;
+
+/* accent */
+@accent:         #3574f0;
+@accent-hover:   #4682fa;
+@accent-pressed: #2a5fd0;
+@on-accent:      #ffffff;
+@selection:      #d4e2ff;
+
+/* status */
+@danger:         #e55765;
+@danger-hover:   #f07b86;
+
+/* icon set used in url(...) */
+@icons:          :/light;

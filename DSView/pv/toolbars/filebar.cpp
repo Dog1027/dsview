@@ -38,7 +38,7 @@ namespace pv {
 namespace toolbars {
 
 FileBar::FileBar(SigSession *session, QWidget *parent) :
-    QToolBar("File Bar", parent),
+    ToolbarItemSource("File Bar", parent),
     _session(session),
     _file_button(this)
 {
@@ -73,7 +73,6 @@ FileBar::FileBar(SigSession *session, QWidget *parent) :
     _action_capture = new QAction(this);
     _action_capture->setObjectName(QString::fromUtf8("actionCapture"));
  
-    _file_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     _file_button.setPopupMode(QToolButton::InstantPopup);
 
     _menu = new QMenu(this);
@@ -83,7 +82,7 @@ FileBar::FileBar(SigSession *session, QWidget *parent) :
     _menu->addAction(_action_export);
     _menu->addAction(_action_capture);
     _file_button.setMenu(_menu);
-    addWidget(&_file_button);
+    add_item("file", &_file_button); // placement: topbarlayout.h
 
     connect(_action_load, SIGNAL(triggered()), this, SLOT(on_actionLoad_triggered()));
     connect(_action_store, SIGNAL(triggered()), this, SLOT(on_actionStore_triggered()));
@@ -263,7 +262,7 @@ void FileBar::UpdateFont()
 { 
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
-    ui::set_toolbar_font(this, font);
+    apply_font(font);
 }
 
 } // namespace toolbars

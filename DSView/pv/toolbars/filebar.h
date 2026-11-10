@@ -31,13 +31,14 @@
 #include "../interface/icallbacks.h"
 #include "../ui/xtoolbutton.h"
 #include "../ui/uimanager.h"
+#include "toolbaritemsource.h"
 
 namespace pv {
 namespace toolbars {
 
 //toolbar button,referenced by MainWindow
 //TODO: load session file, sorte session, load log data file, sorte data, export data
-class FileBar : public QToolBar, public IUiWindow
+class FileBar : public ToolbarItemSource, public IUiWindow
 {
     Q_OBJECT
 

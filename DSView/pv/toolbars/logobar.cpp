@@ -52,7 +52,7 @@ namespace pv {
 namespace toolbars {
 
 LogoBar::LogoBar(SigSession *session, QWidget *parent) :
-    QToolBar("File Bar", parent),
+    ToolbarItemSource("Logo Bar", parent),
     _enable(true),
     _connected(false),
     _session(session),
@@ -103,16 +103,9 @@ LogoBar::LogoBar(SigSession *session, QWidget *parent) :
     _menu->addAction(_log);
     _logo_button.setMenu(_menu);
 
-    _logo_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     _logo_button.setPopupMode(QToolButton::InstantPopup);
 
-    QWidget *spacer = new QWidget(this);
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    addWidget(spacer);
-    addWidget(&_logo_button);
-    QWidget *margin = new QWidget(this);
-    margin->setMinimumWidth(20);
-    addWidget(margin);
+    add_item("help", &_logo_button); // placement: topbarlayout.h
 
     connect(_action_en, SIGNAL(triggered()), this, SLOT(on_actionEn_triggered()));
     connect(_action_cn, SIGNAL(triggered()), this, SLOT(on_actionCn_triggered()));
@@ -356,7 +349,7 @@ void LogoBar::UpdateFont()
 { 
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
-    ui::set_toolbar_font(this, font);
+    apply_font(font);
 }
 
 } // namespace toolbars

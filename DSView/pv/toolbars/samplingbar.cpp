@@ -57,7 +57,7 @@ namespace pv
         const QString SamplingBar::RLEString = "(RLE)";
         const QString SamplingBar::DIVString = " / div";
 
-        SamplingBar::SamplingBar(SigSession *session, QWidget *parent) : QToolBar("Sampling Bar", parent),
+        SamplingBar::SamplingBar(SigSession *session, QWidget *parent) : ToolbarItemSource("Sampling Bar", parent),
                                                                          _device_type(this),
                                                                          _device_selector(this),
                                                                          _configure_button(this),
@@ -94,20 +94,17 @@ namespace pv
             //tr
             _run_stop_button.setObjectName("run_stop_button");
 
-            QWidget *leftMargin = new QWidget(this);
-            leftMargin->setFixedWidth(4);
-            addWidget(leftMargin);
+            // Placement and style of these items: topbarlayout.h
+            add_item("device_type", &_device_type);
+            add_item("device", &_device_selector);
+            add_item("options", &_configure_button);
 
-            _device_type.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-            addWidget(&_device_type);
-            addWidget(&_device_selector);
-            _configure_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-            addWidget(&_configure_button);
-
-            addWidget(&_sample_count);
+            add_item("sample_count", &_sample_count);
             //tr
-            addWidget(new QLabel(" @ "));
-            addWidget(&_sample_rate);
+            QLabel *atLabel = new QLabel("@");
+            atLabel->setObjectName("SampleAtLabel");
+            add_item("at", atLabel);
+            add_item("sample_rate", &_sample_rate);
 
             _action_single = new QAction(this);
             _action_repeat = new QAction(this);
@@ -119,13 +116,9 @@ namespace pv
             _mode_menu->addAction(_action_loop);
             _mode_button.setMenu(_mode_menu);
 
-            _mode_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-            _mode_action = addWidget(&_mode_button);
-
-            _run_stop_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-            _run_stop_action = addWidget(&_run_stop_button);
-            _instant_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-            _instant_action = addWidget(&_instant_button); 
+            _mode_action = add_item("mode", &_mode_button);
+            _run_stop_action = add_item("start", &_run_stop_button);
+            _instant_action = add_item("instant", &_instant_button);
 
             update_view_status();
 
@@ -1292,7 +1285,7 @@ namespace pv
         {  
             QFont font = this->font();
             font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
-            ui::set_toolbar_font(this, font);
+            apply_font(font);
 
             update_view_status();
         }

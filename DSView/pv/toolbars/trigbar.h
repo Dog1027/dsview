@@ -29,6 +29,7 @@
 #include "../interface/icallbacks.h"
 #include "../ui/xtoolbutton.h"
 #include "../ui/uimanager.h"
+#include "toolbaritemsource.h"
 
 class DockOptions;
 
@@ -40,7 +41,7 @@ namespace toolbars {
 
 //boolbar, referenced by MainWindow
 //TODO:show the property panel about protocol\trigger
-class TrigBar : public QToolBar, public IUiWindow
+class TrigBar : public ToolbarItemSource, public IUiWindow
 {
     Q_OBJECT
 

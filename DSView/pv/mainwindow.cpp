@@ -104,6 +104,9 @@
 #include "dsvdef.h"
 #include <thread>
 #include "ui/uimanager.h"
+#include "ui/theme.h"
+#include "toolbars/topbar.h"
+#include "toolbars/topbarlayout.h"
 
 namespace pv
 {
@@ -157,14 +160,17 @@ namespace pv
         setCentralWidget(_central_widget);
 
         // Setup the sampling bar
+        // The four toolbars below only provide items to the top bar and are
+        // never shown; their names differ from older versions on purpose, so
+        // a saved window state can't restore them as visible toolbars.
         _sampling_bar = new toolbars::SamplingBar(_session, this);        
-        _sampling_bar->setObjectName("sampling_bar");
+        _sampling_bar->setObjectName("sampling_source");
         _trig_bar = new toolbars::TrigBar(_session, this);
-        _trig_bar->setObjectName("trig_bar");
+        _trig_bar->setObjectName("trig_source");
         _file_bar = new toolbars::FileBar(_session, this);
-        _file_bar->setObjectName("file_bar");
+        _file_bar->setObjectName("file_source");
         _logo_bar = new toolbars::LogoBar(_session, this);
-        _logo_bar->setObjectName("logo_bar");
+        _logo_bar->setObjectName("logo_source");
 
         // trigger dock
         _trigger_dock = new QDockWidget(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TRIGGER_DOCK_TITLE), "Trigger Setting..."), this);
@@ -188,11 +194,10 @@ namespace pv
         _vertical_layout->addWidget(_view);
 
 
-        setIconSize(QSize(40, 40));
-        addToolBar(_sampling_bar);
-        addToolBar(_trig_bar);
-        addToolBar(_file_bar);
-        addToolBar(_logo_bar);
+        // Top bar: the items of the four toolbars, arranged by topbarlayout.h
+        toolbars::TopBar *top_bar = new toolbars::TopBar(this);
+        top_bar->build({_sampling_bar, _trig_bar, _file_bar, _logo_bar}, TOP_BAR_LAYOUT);
+        addToolBar(top_bar);
 
         // Setup the dockWidget
         _protocol_dock = new QDockWidget(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PROTOCOL_DOCK_TITLE), "Decode Protocol"), this);
@@ -247,6 +252,12 @@ namespace pv
         AppConfig &app = AppConfig::Instance();
         switchLanguage(app.frameOptions.language);
         switchTheme(app.frameOptions.style);
+
+        // Live theme editing (DSVIEW_THEME_DIR): re-apply on every save.
+        connect(&ui::Theme::Instance(), &ui::Theme::changed, this, [this]()
+        {
+            switchTheme(AppConfig::Instance().frameOptions.style);
+        });
 
         _sampling_bar->set_view(_view);
 
@@ -1424,11 +1435,7 @@ namespace pv
             app.SaveFrame();
         }
 
-        QString qssRes = ":/" + style + ".qss";
-        QFile qss(qssRes);
-        qss.open(QFile::ReadOnly | QFile::Text);
-        qApp->setStyleSheet(qss.readAll());
-        qss.close();
+        qApp->setStyleSheet(ui::Theme::Instance().build_style_sheet(style));
 
         UiManager::Instance()->Update(UI_UPDATE_ACTION_THEME);
         UiManager::Instance()->Update(UI_UPDATE_ACTION_FONT);
