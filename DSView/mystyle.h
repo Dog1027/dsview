@@ -103,6 +103,10 @@ class MyStyle : public QProxyStyle
                     if (!other)
                         pb->setDefault(true);
                 }
+                // Cancel / No: red (QPushButton[role="reject"] in theme.qss).
+                const bool reject = role == QDialogButtonBox::RejectRole
+                                 || role == QDialogButtonBox::NoRole;
+                pb->setProperty("role", reject ? "reject" : "");
             }
         }
 

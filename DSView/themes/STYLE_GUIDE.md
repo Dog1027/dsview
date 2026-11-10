@@ -18,8 +18,9 @@ Principles
    the platform's button order in dialogs.
 3. **Cards on a backdrop.** The waveform area, the side panels and dialogs
    are rounded cards (`@bg`) on the darker window (`@chrome`).
-4. **One blue button.** In a dialog only the button that does the thing
-   (OK, Yes, Save) is `@accent`. Everything else is a plain button.
+4. **One blue button, one red.** In a dialog the button that does the
+   thing (OK, Yes, Save) is `@accent`; the one that backs out (Cancel,
+   No) is `@danger`. Everything else is a plain button.
 5. **Icons alone only with a tooltip.** An icon-only button always has
    its text as tooltip.
 6. **One place for the look.** Colours, fonts, borders and padding come
@@ -49,7 +50,7 @@ Use palette tokens (`@name`), never hex values, in `theme.qss`. In C++
 | `@on-accent` | text and icons on `@accent` |
 | `@selection` | selected rows and menu items |
 | `@link` | links in text (labels, text browsers) |
-| `@danger` (+ `-hover`) | destructive actions and errors |
+| `@danger` (+ `-hover`) | Cancel / No buttons, destructive actions, errors |
 | `@close-hover` | window close button only |
 
 Not from the palette, on purpose: the channel colours (`PROBE_COLORS`),
@@ -139,7 +140,10 @@ blue moves to whichever button has the focus), the first OK / Yes /
 Save in a button box is the default. Push buttons take focus only by
 Tab, and only that keyboard focus shows a 2 px ring
 (`[kbfocus="true"]`: `@accent`, `@text-bright` on the default button),
-so a clicked button never looks stuck.
+so a clicked button never looks stuck. Buttons with the reject or no
+role (Cancel, No) are red: `MyStyle::polish` sets `role="reject"`,
+`theme.qss` colours them. Other buttons in the box (Reset, Help,
+Abort) stay plain.
 
 **Dialog buttons.** Always a `QDialogButtonBox` at the bottom right, in
 its own row of the dialog layout. Button order is the platform's

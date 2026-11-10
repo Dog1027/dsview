@@ -1868,6 +1868,25 @@ QDialogButtonBox QPushButton[kbfocus="true"]
     padding: 4px 11px;
 }
 
+/* Cancel / No (role set by MyStyle::polish from the button box role) */
+QDialogButtonBox QPushButton[role="reject"]
+{
+    background-color: @danger;
+    border: 1px solid @danger;
+    color: @on-accent;
+}
+
+QDialogButtonBox QPushButton[role="reject"]:hover
+{
+    background-color: @danger-hover;
+    border: 1px solid @danger-hover;
+}
+
+QDialogButtonBox QPushButton[role="reject"][kbfocus="true"]
+{
+    border: 2px solid @text-bright;
+}
+
 /* Magnifier shown inside the search field of the search bar */
 QPushButton#inline_search_icon,
 QPushButton#inline_search_icon:disabled
