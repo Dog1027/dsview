@@ -143,6 +143,7 @@ private:
     bool gestureEvent(QNativeGestureEvent *event);
 
     void paintSignals(QPainter& p, QColor fore, QColor back);
+    void paintHoverRow(QPainter &p, std::vector<Trace*> &traces);
     void paintProgress(QPainter& p, QColor fore, QColor back);
     void paintMeasure(QPainter &p, QColor fore, QColor back);
     void paintCursors(QPainter &p);

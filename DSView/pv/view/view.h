@@ -82,6 +82,7 @@ private:
     static const int MaxHeightUnit;
     static const double MaxVerticalZoom;
     static const int MaxZoomedSignalHeight;
+    static const int MinDecoderRowHeight;
 
 public:
     //static const int SignalHeight;
@@ -195,6 +196,15 @@ public:
         return _signalHeight;
     }
 
+    // Height of one decoder row: at least MinDecoderRowHeight, so the
+    // annotation text stays readable when many channels share the view.
+    inline int get_decoderRowHeight(){
+        return _decoderRowHeight;
+    }
+
+    // Row height of a trace: decoder rows or signal rows.
+    int row_height_of(Trace *t);
+
     int headerWidth();
 
     inline Ruler* get_ruler(){
@@ -215,10 +225,14 @@ public:
     // Vertical zoom of the logic channels (Ctrl + wheel). `factor` > 1
     // makes the channels taller; `anchor_y` stays over the same channel.
     void v_zoom(double factor, int anchor_y);
-    // Scroll the channels vertically by `dy` pixels (only when zoomed).
+    // Scroll the channels vertically by `dy` pixels (when v_scrollable()).
     void v_scroll_by(int dy);
     inline bool v_zoomed(){
         return _v_zoom > 1.0;
+    }
+    // The channels are taller than the view (zoomed, or many decoder rows).
+    inline bool v_scrollable(){
+        return _v_scroll_max > 0;
     }
 
     void show_trig_cursor(bool show = true);
@@ -472,6 +486,7 @@ private:
     int64_t     _preOffset;
     int         _spanY;
     int         _signalHeight;
+    int         _decoderRowHeight;
     bool        _updating_scroll;
     double      _v_zoom;        // logic channel height factor, >= 1
     int         _v_scroll;      // vertical scroll position, in pixels

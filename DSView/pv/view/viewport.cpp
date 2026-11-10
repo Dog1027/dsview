@@ -21,6 +21,7 @@
  */
 
 #include "viewport.h"
+#include "../ui/theme.h"
 #include "ruler.h"
 
 #include "signal.h"
@@ -181,6 +182,8 @@ void Viewport::doPaint()
     std::vector<Trace*> traces;
     _view.get_traces(_type, traces);
 
+    paintHoverRow(p, traces);
+
     for(auto t : traces){
         t->paint_back(p, 0, _view.get_view_width(), fore, back);
         if (_view.back_ready())
@@ -258,6 +261,39 @@ void Viewport::paintCursors(QPainter &p)
             else
                 cursor->paint(p, xrect, 0, _view.session().is_stopped_status());
         }
+    }
+}
+
+// The row under the mouse (here or over its name in the header) gets a
+// faint band, so the eye can follow it across the screen.
+void Viewport::paintHoverRow(QPainter &p, std::vector<Trace*> &traces)
+{
+    if (_type != TIME_VIEW || _view.session().get_device()->get_work_mode() != LOGIC)
+        return;
+
+    const int hy = _view.hover_point().y();
+    if (_view.hover_point().x() < 0 || hy < 0)
+        return;
+
+    const int pad = std::max(0, (_view.get_spanY() - _view.get_signalHeight()) / 2);
+
+    for (auto t : traces){
+        if (!t->enabled() || t->rows_size() == 0)
+            continue;
+        const int top = t->get_y() - t->get_totalHeight() / 2 - pad;
+        const int bottom = t->get_y() + t->get_totalHeight() / 2 + pad;
+        if (hy < top || hy >= bottom)
+            continue;
+
+        QColor band = ui::Theme::Instance().color("hover", QColor(128, 128, 128));
+        band.setAlpha(150);
+        p.save();
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setPen(Qt::NoPen);
+        p.setBrush(band);
+        p.drawRoundedRect(QRectF(2, top + 1, width() - 4, bottom - top - 2), 4, 4);
+        p.restore();
+        break;
     }
 }
 
@@ -1380,7 +1416,7 @@ void Viewport::wheelEvent(QWheelEvent *event)
         // Ctrl + wheel: make the channels taller / shorter.
         _view.v_zoom(delta > 0 ? 1.25 : 0.8, (int)event->position().y());
     }
-    else if (_type == TIME_VIEW && isVertical && _view.v_zoomed()
+    else if (_type == TIME_VIEW && isVertical && _view.v_scrollable()
              && (event->modifiers() & Qt::ShiftModifier))
     {
         // Shift + wheel: scroll the zoomed channels up / down.

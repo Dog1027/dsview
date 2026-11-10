@@ -64,6 +64,7 @@ const int View::MaxScrollValue = INT_MAX / 2;
 const int View::MaxHeightUnit = 20;
 const double View::MaxVerticalZoom = 16.0;
 const int View::MaxZoomedSignalHeight = 400;
+const int View::MinDecoderRowHeight = 18;
 
 //const int View::SignalHeight = 30;s
 const int View::SignalMargin = 7;
@@ -101,6 +102,7 @@ View::View(SigSession *session, pv::toolbars::SamplingBar *sampling_bar, QWidget
     _show_lissajous(false),
     _back_ready(false),
     _v_zoom(1.0),
+    _decoderRowHeight(0),
     _v_scroll(0),
     _v_scroll_max(0)
 {  
@@ -732,6 +734,13 @@ void View::mode_changed()
     _scale = max(min(_scale, _maxscale), _minscale);
 }
 
+int View::row_height_of(Trace *t)
+{
+    if (dynamic_cast<DecodeTrace*>(t) && _decoderRowHeight > 0)
+        return _decoderRowHeight;
+    return _signalHeight;
+}
+
 void View::signals_changed(const Trace* eventTrace)
 {
     double actualMargin = SignalMargin;
@@ -832,6 +841,34 @@ void View::signals_changed(const Trace* eventTrace)
 
             if (_v_zoom > 1.0)
                 _signalHeight = min(_signalHeight * _v_zoom, (double)MaxZoomedSignalHeight);
+
+            // Decoder rows: not lower than MinDecoderRowHeight; the logic
+            // rows share what is left (but keep at least 6 px).
+            int dec_rows = 0;
+            int other_rows = 0;
+            for(auto t : time_traces) {
+                if (!t->enabled() || t->rows_size() == 0)
+                    continue;
+                if (dynamic_cast<DecodeTrace*>(t))
+                    dec_rows += t->rows_size();
+                else
+                    other_rows += t->rows_size();
+            }
+            _decoderRowHeight = _signalHeight;
+            if (dec_rows > 0 && _signalHeight < MinDecoderRowHeight) {
+                _decoderRowHeight = MinDecoderRowHeight;
+                if (_v_zoom <= 1.0 && other_rows > 0) {
+                    const double avail = _time_viewport->height()
+                                       - 2 * actualMargin * label_size
+                                       - dec_rows * _decoderRowHeight;
+                    // Logic rows give up height for the decoder rows, but
+                    // not below 14 px (channel tags); what does not fit
+                    // then scrolls.
+                    const double logic_h = avail / other_rows;
+                    const double floor_h = min(14.0, (double)_signalHeight);
+                    _signalHeight = max(floor_h, min(logic_h, (double)_signalHeight));
+                }
+            }
         }
         else if (_device_agent->get_work_mode() == DSO) {
             _signalHeight = (_header->height()
@@ -842,15 +879,17 @@ void View::signals_changed(const Trace* eventTrace)
             _signalHeight = (int)((height <= 0) ? 1 : height);
         }
 
+        if (mode != LOGIC)
+            _decoderRowHeight = _signalHeight;
         _spanY = _signalHeight + 2 * actualMargin;
 
         // Vertical scrolling: only when zoomed, the channels can be taller
         // than the view.
-        if (mode == LOGIC && _v_zoom > 1.0) {
+        if (mode == LOGIC) {
             int content = actualMargin;
             for(auto t : time_traces) {
                 if (t->rows_size() != 0)
-                    content += _signalHeight * t->rows_size() + 2 * actualMargin;
+                    content += row_height_of(t) * t->rows_size() + 2 * actualMargin;
             }
             _v_scroll_max = max(0, content - _time_viewport->height());
         }
@@ -893,7 +932,7 @@ void View::signals_changed(const Trace* eventTrace)
             if (t->rows_size() == 0)
                 continue;
 
-            const double traceHeight = _signalHeight*t->rows_size();
+            const double traceHeight = row_height_of(t) * t->rows_size();
             t->set_totalHeight((int)traceHeight);
             t->set_v_offset(next_v_offset + 0.5 * traceHeight + actualMargin);
             next_v_offset += traceHeight + 2 * actualMargin;
@@ -940,9 +979,15 @@ bool View::eventFilter(QObject *object, QEvent *event)
 			_hover_point = QPoint(-1, -1);
 
 		hover_point_changed();
+        // The hover band of the row (Viewport::paintHoverRow) follows the
+        // mouse over the channel names too.
+        if (object == _header && _time_viewport)
+            _time_viewport->QWidget::update();
 	} else if (type == QEvent::Leave) {
 		_hover_point = QPoint(-1, -1);
 		hover_point_changed();
+        if (_time_viewport)
+            _time_viewport->QWidget::update();
 	}
 
 	return QObject::eventFilter(object, event);

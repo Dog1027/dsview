@@ -380,7 +380,7 @@ void Header::wheelEvent(QWheelEvent *event)
         }
 
         // Nothing under the mouse takes the wheel: scroll the channels.
-        if (!used && _view.v_zoomed())
+        if (!used && _view.v_scrollable())
             _view.v_scroll_by(-delta * _view.get_signalHeight() / 120);
 
         update();

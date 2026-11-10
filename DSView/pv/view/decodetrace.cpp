@@ -160,7 +160,7 @@ void DecodeTrace::paint_back(QPainter &p, int left, int right, QColor fore, QCol
     QColor backFore = fore;
     backFore.setAlpha(40);
     p.setPen(backFore);
-    const double sigY = get_y() - (_totalHeight - _view->get_signalHeight())*0.5;
+    const double sigY = get_y() - (_totalHeight - _view->get_decoderRowHeight())*0.5;
     p.drawLine(left, sigY, right, sigY);
 
     // --draw decode region control
@@ -226,7 +226,7 @@ void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColo
     if (end_sample < start_sample)
         return;
 
-    const int annotation_height = _view->get_signalHeight();
+    const int annotation_height = _view->get_decoderRowHeight();
 
     // Iterate through the rows
     assert(_view);
@@ -310,7 +310,7 @@ void DecodeTrace::paint_fore(QPainter &p, int left, int right, QColor fore, QCol
     chip.setAlpha(225);
     const QColor text = theme.color("text-muted", QColor(150, 150, 150));
 
-    const int row_height = _view->get_signalHeight();
+    const int row_height = _view->get_decoderRowHeight();
     if (row_height <= 4)
         return;
 
@@ -582,7 +582,7 @@ void DecodeTrace::on_new_decode_data()
 
     if (_view && _view->session().is_stopped_status())
         _view->data_updated();
-    if (_totalHeight/_view->get_signalHeight() != rows_size())
+    if (_totalHeight/_view->get_decoderRowHeight() != rows_size())
         _view->signals_changed(NULL);
 }
 
