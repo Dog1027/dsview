@@ -154,7 +154,9 @@ label), so the ring marks the whole setting, not only the box.
 **Dialog buttons.** Always a `QDialogButtonBox` at the bottom right, in
 its own row of the dialog layout. Button order is the platform's
 (`MyStyle`: GNOME order on Linux, so Cancel / No on the left, the action
-at the right end). Do not build OK / Cancel rows by hand.
+at the right end). Do not build OK / Cancel rows by hand. The
+button box is the dialog's footer: a 1 px `@divider` line above it, 12
+from the line to the buttons (`theme.qss` and `MyStyle::polish`).
 
 **Dialogs.** Derive from `DSDialog`: title bar (title left, DemiBold),
 then content in group boxes (`QGroupBox` with a title, `QFormLayout`

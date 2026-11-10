@@ -1827,6 +1827,14 @@ QFrame#dialog_frame
 
 /* ---- Dialog buttons --------------------------------------------------- */
 
+/* The button row of a dialog is its footer: a divider line above it
+   (12 px to the buttons: contents margin set in MyStyle::polish). */
+QDialogButtonBox
+{
+    border: none;
+    border-top: 1px solid @divider;
+}
+
 QDialogButtonBox QPushButton
 {
     min-width: 72px;

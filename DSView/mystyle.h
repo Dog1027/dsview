@@ -107,6 +107,14 @@ class MyStyle : public QProxyStyle
             widget->setCursor(Qt::PointingHandCursor);
         }
 
+        // Dialog footer: lets theme.qss draw the divider above the buttons.
+        // QSS padding does not reach its layout, so the 12 px from the
+        // line to the buttons is a contents margin.
+        if (qobject_cast<QDialogButtonBox*>(widget) != nullptr) {
+            widget->setAttribute(Qt::WA_StyledBackground, true);
+            widget->setContentsMargins(0, 12, 0, 0);
+        }
+
         // Check boxes and radio buttons: same keyboard-only focus ring
         // (FocusRing, around the box, its text and the name in front).
         if (qobject_cast<QCheckBox*>(widget) != nullptr
