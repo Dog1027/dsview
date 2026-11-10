@@ -33,6 +33,9 @@
 #include <QTextEdit>
 #include <QRadioButton>
 #include <QCheckBox>
+#include <QAbstractSpinBox>
+#include <QAbstractItemView>
+#include <QToolButton>
 #include <QDebug>
 #include <QFontMetrics>
 
@@ -90,6 +93,17 @@ namespace ui
     {
         assert(wid);
 
+        // Normal weight, set explicitly: group box titles are bold through
+        // theme.qss and their content must not inherit that.
+        font.setWeight(QFont::Normal);
+
+        for (auto o : wid->findChildren<QAbstractSpinBox*>())
+            o->setFont(font);
+        for (auto o : wid->findChildren<QAbstractItemView*>())
+            o->setFont(font);
+        for (auto o : wid->findChildren<QToolButton*>())
+            o->setFont(font);
+
         auto buttons2 = wid->findChildren<QPushButton*>();
         for(auto o : buttons2)
         { 
@@ -132,9 +146,8 @@ namespace ui
             o->setFont(font);
         }
 
-        // Magnify the size.
-        font.setPointSizeF(font.pointSizeF() + 1);
-
+        // Tabs and group titles: same size, see themes/STYLE_GUIDE.md
+        // (headings are bold through theme.qss, not bigger).
         auto tabs = wid->findChildren<QTabWidget*>();
         for(auto o : tabs)
         { 

@@ -393,6 +393,7 @@ QTextEdit
 /* Group: title above a rounded frame (the title does not cut the line). */
 QGroupBox
 {
+    font-weight: 600;       /* the title; content is set back to normal in ui::set_form_font */
     border: 1px solid @border;
     border-radius: 8px;
     margin-top: 1.7em;
@@ -1865,6 +1866,11 @@ QLabel#hint,
 QLabel#trigger_hint
 {
     color: @text-muted;
+}
+
+QLabel#heading
+{
+    font-weight: 600;
 }
 
 QGroupBox#trigger_page

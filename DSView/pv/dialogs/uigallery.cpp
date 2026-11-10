@@ -362,10 +362,8 @@ QWidget* UiGallery::build_content()
 
     // ---- Text
     QGroupBox *text = card("Text", &lay);
-    QLabel *heading = new QLabel("Heading");
-    QFont hf = heading->font();
-    hf.setWeight(QFont::DemiBold);
-    heading->setFont(hf);
+    QLabel *heading = new QLabel("Heading (QLabel#heading)");
+    heading->setObjectName("heading");
     lay->addWidget(heading);
     lay->addWidget(new QLabel("Normal label text"));
     QLabel *muted = new QLabel("Muted hint text (QLabel#hint)");

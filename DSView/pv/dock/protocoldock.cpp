@@ -1077,8 +1077,6 @@ void ProtocolDock::UpdateFont()
         lay->update_font();
     }
 
-    font.setPointSizeF(font.pointSizeF() + 1);
-    this->parentWidget()->setFont(font);
     _table_view->horizontalHeader()->setFont(font);
     _table_view->verticalHeader()->setFont(font);
 

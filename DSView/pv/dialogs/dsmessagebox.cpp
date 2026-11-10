@@ -147,10 +147,6 @@ int DSMessageBox::exec()
 {
     prepare();
 
-    if (_titlebar != NULL){
-        _titlebar->update_font();
-    }
-
     PopupDlgList::AddDlgTolist(this);
 
     return QDialog::exec();
@@ -161,6 +157,9 @@ void DSMessageBox::prepare()
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
     ui::set_form_font(this, font);
+    // The box itself too: its labels fall back to its font when shown and
+    // when the stylesheet styles them.
+    _msg->setFont(font);
 
     // No stock icon: the text says what it is about.
     _msg->setIcon(QMessageBox::NoIcon);
@@ -234,6 +233,10 @@ void DSMessageBox::prepare()
     if (QPushButton *def = _msg->defaultButton()){
         def->setDefault(true);
         QTimer::singleShot(0, def, [def]() { def->setFocus(); });
+    }
+
+    if (_titlebar != NULL){
+        _titlebar->update_font();
     }
 }
 

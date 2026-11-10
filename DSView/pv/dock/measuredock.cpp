@@ -944,8 +944,6 @@ void MeasureDock::UpdateFont()
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
     ui::set_form_font(this, font);
-    font.setPointSizeF(font.pointSizeF() + 1);
-    this->parentWidget()->setFont(font);
 
     adjusLabelSize();
 }

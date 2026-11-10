@@ -21,6 +21,9 @@
 
 #include "uimanager.h"
 #include <assert.h>
+#include <QApplication>
+#include <QFont>
+#include "../config/appconfig.h"
 
 UiManager::UiManager()
 {
@@ -71,6 +74,14 @@ void UiManager::RemoveWindow(IUiWindow *w)
 
 void UiManager::Update(UiUpdateAction action)
 {
+    // The app font has the size of the panels and dialogs, so whatever does
+    // not set its own font (menus, tooltips, new widgets) matches them.
+    if (action == UI_UPDATE_ACTION_FONT){
+        QFont font = QApplication::font();
+        font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
+        QApplication::setFont(font);
+    }
+
     for (auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
     {
         IUiWindow *w = (*it);

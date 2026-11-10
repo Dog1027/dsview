@@ -71,10 +71,15 @@ Hierarchy comes from weight and colour, not from size.
 
 Rules:
 
-- Apply the size with `ui::set_form_font()` / `update_font()` as dialogs
-  and panels already do. Do not add `+1` or other sizes.
+- The app font (`QApplication::setFont`) gets the base size whenever the
+  font options change (`UiManager::Update(UI_UPDATE_ACTION_FONT)`), so
+  menus, tooltips and new widgets match without extra code.
+- Dialogs and panels also apply it with `ui::set_form_font()` /
+  `update_font()`, which sets an explicit normal weight. Do not add `+1`
+  or other sizes.
 - Bold in QSS (`font-weight: 600`), not with `QFont::setBold` in code,
-  so the theme can change it.
+  so the theme can change it. A bold label: object name `heading`.
+  Group box titles are bold through the `QGroupBox` rule.
 - The "UI gallery" title is the only text bigger than base.
 
 Spacing
@@ -140,16 +145,17 @@ is the default.
 with the side panel row spacing (6). Content follows the panel width
 (`setWidgetResizable(true)`); a panel never scrolls sideways.
 
-**Icon-only buttons.** `QToolButton`, 24 px icon in the toolbar and
-activity bar, tooltip = the button's text.
+**Icon-only buttons.** `QToolButton`, tooltip = the button's text.
+Icons are 24 px in the toolbar and activity bar, 16 px inside panels
+and dialogs.
 
 **Secondary labels.** `QLabel` with object name `hint`
-(`setObjectName("hint")`).
+(`setObjectName("hint")`). **Bold labels:** object name `heading`.
 
 **Styled variants.** Distinguish them by object name and give them a rule
 in `theme.qss`; do not call `setStyleSheet` in code (exceptions: colours
 that come from data, like the palette swatches in the gallery). Existing
-names: `hint`, `trigger_hint`, `inline_search_icon`, `panel_card`,
+names: `hint`, `heading`, `trigger_hint`, `inline_search_icon`, `panel_card`,
 `panel_card_header`, `central_card`, `dialog_frame`, `window_frame`,
 `app_status_bar`, `main_bar_row`, `activity_bar`.
 
@@ -201,8 +207,7 @@ Known deviations (to fix)
 
 Found with the gallery; the code does not follow the guide here yet.
 
-- Message box text is smaller than the form labels of dialogs.
-- Group box titles are bigger than the base size.
-- Tool buttons outside the toolbars use 16 px icons.
-- Several panels and dialogs still set their own font sizes (`+1`) or
-  fixed sizes.
+- Several panels and dialogs still set fixed sizes (`setFixedSize`,
+  `setFixedHeight`, `setMinimumWidth` with computed values).
+- The channel rows, ruler and waveform labels use their own font options
+  (Display options → fonts), not the base size. Intended for now.
