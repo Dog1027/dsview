@@ -240,7 +240,7 @@ void View::capture_init()
     else if (!_session->is_repeating())
         show_trig_cursor(false);
  
-    _maxscale = _session->cur_sampletime() / (width * MaxViewRate);
+    _maxscale = _session->cur_sampletime() / (fit_width(width) * MaxViewRate);
 
     if (mode == ANALOG){
         set_scale_offset(_maxscale, 0);
@@ -608,8 +608,24 @@ void View::normalize_layout()
 
 void View::get_scroll_layout(int64_t &length, int64_t &offset)
 {
-    length = ceil(_session->cur_snap_sampletime() / _scale);
-    offset = _offset;
+    // The scroll range includes the empty edge on both sides.
+    const int pad = edge_pad();
+    length = ceil(_session->cur_snap_sampletime() / _scale) + 2 * pad;
+    offset = _offset + pad;
+}
+
+int View::edge_pad()
+{
+    // Logic / DAQ: a little room before the start and after the end of
+    // the data, so the first and last ruler labels are not squeezed.
+    if (_device_agent->have_instance() && _device_agent->get_work_mode() == DSO)
+        return 0;
+    return EdgePad;
+}
+
+double View::fit_width(int width)
+{
+    return max(1, width - 2 * edge_pad());
 }
 
 void View::update_scroll()
@@ -639,7 +655,7 @@ void View::update_scroll()
 	} else {
 		horizontalScrollBar()->setRange(0, MaxScrollValue);
 		horizontalScrollBar()->setSliderPosition(
-            _offset * 1.0  / length * MaxScrollValue);
+            offset * 1.0  / length * MaxScrollValue);
 	}
 
 	_updating_scroll = false;
@@ -685,7 +701,7 @@ void View::update_scale_offset()
     }
 
     if (_device_agent->get_work_mode() != DSO) {
-        _maxscale = _session->cur_sampletime() / (width * MaxViewRate);     
+        _maxscale = _session->cur_sampletime() / (fit_width(width) * MaxViewRate);     
         _minscale = (1.0 / _session->cur_snap_samplerate()) / MaxPixelsPerSample;
     }
     else {
@@ -983,7 +999,7 @@ void View::resizeEvent(QResizeEvent*)
     }
 
     if (_device_agent->get_work_mode() != DSO)
-        _maxscale = _session->cur_sampletime() / (width * MaxViewRate);
+        _maxscale = _session->cur_sampletime() / (fit_width(width) * MaxViewRate);
     else
         _maxscale = 1e9;
 
@@ -1005,13 +1021,13 @@ void View::h_scroll_value_changed(int value)
 
 	const int range = horizontalScrollBar()->maximum();
 	if (range < MaxScrollValue)
-        _offset = value;
+        _offset = value - edge_pad();
 	else 
     {
         int64_t length = 0;
         int64_t offset = 0;
 		get_scroll_layout(length, offset);
-        _offset = floor(value * 1.0 / MaxScrollValue * length);
+        _offset = floor(value * 1.0 / MaxScrollValue * length) - edge_pad();
 	}
 
     _offset = max(min(_offset, get_max_offset()), get_min_offset());
@@ -1305,9 +1321,9 @@ int64_t View::get_min_offset()
     assert(width > 0);
 
     if (MaxViewRate > 1)
-        return floor(width * (1 - MaxViewRate));
+        return floor(width * (1 - MaxViewRate)) - edge_pad();
     else
-        return 0;
+        return -edge_pad();
 }
 
 int64_t View::get_max_offset()
@@ -1316,7 +1332,7 @@ int64_t View::get_max_offset()
     assert(width > 0);
 
     return ceil((_session->cur_snap_sampletime() / _scale) -
-                (width * MaxViewRate));
+                (width * MaxViewRate)) + edge_pad();
 }
 
 int64_t View::get_logic_lst_data_offset(){
@@ -1324,7 +1340,7 @@ int64_t View::get_logic_lst_data_offset(){
     assert(width > 0);
 
     return ceil((_session->get_logic_data_view_time() / _scale) -
-                (width * MaxViewRate));
+                (width * MaxViewRate)) + edge_pad();
 }
 
 void View::scroll_to_logic_last_data_time()
@@ -1581,7 +1597,7 @@ void View::auto_set_max_scale()
 
     if (width > 0)
     {
-        _maxscale =  limitTime / (width * MaxViewRate);
+        _maxscale =  limitTime / (fit_width(width) * MaxViewRate);
         set_scale(_maxscale);
     }  
 }

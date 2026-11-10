@@ -60,7 +60,7 @@ static void draw_tick_label(QPainter &p, int x, int y, int h, const QString &tex
     const int w = p.fontMetrics().horizontalAdvance(text);
     int left = x - w / 2;
     left = std::min(left, rulerWidth - w - 2);
-    left = std::max(left, 10);   // clear of the trigger marker at the left edge
+    left = std::max(left, 0);
     if (left < lastRight + 6)
         return;
     p.drawText(QRect(left, y, w, h), Qt::AlignLeft | Qt::AlignTop | Qt::TextDontClip, text);

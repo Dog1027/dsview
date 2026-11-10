@@ -94,6 +94,7 @@ public:
 
     static const int WellSamplesPerPixel = 2048;
     static constexpr double MaxViewRate = 1.0;
+    static const int EdgePad = 24;   // empty pixels before/after the data
     static const int MaxPixelsPerSample = 100;
 
     static const int StatusHeight = 20;
@@ -359,7 +360,9 @@ signals:
 
 private:
     static bool compare_trace_v_offsets( const Trace *a, const Trace *b);
-    void get_scroll_layout(int64_t &length, int64_t &offset);	
+    void get_scroll_layout(int64_t &length, int64_t &offset);
+    int edge_pad();
+    double fit_width(int width);	
 	void update_scroll();
     void update_margins();   
     void set_scale(double scale);
