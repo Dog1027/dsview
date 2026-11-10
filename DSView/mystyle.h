@@ -34,6 +34,9 @@
 #include <QFocusEvent>
 #include <QFormLayout>
 #include <QGridLayout>
+#include <QAbstractItemView>
+#include <QScreen>
+#include <QScrollBar>
 #include <QLabel>
 #include <QPainter>
 #include <QPointer>
@@ -107,6 +110,12 @@ class MyStyle : public QProxyStyle
             widget->setCursor(Qt::PointingHandCursor);
         }
 
+        // Combo box lists as wide as their longest item (see eventFilter).
+        if (QComboBox *cb = qobject_cast<QComboBox*>(widget)) {
+            if (QWidget *popup = cb->view()->window())
+                popup->installEventFilter(this);
+        }
+
         // Dialog footer: lets theme.qss draw the divider above the buttons.
         // QSS padding does not reach its layout, so the 12 px from the
         // line to the buttons is a contents margin.
@@ -161,6 +170,16 @@ class MyStyle : public QProxyStyle
     using QProxyStyle::polish;
 
     bool eventFilter(QObject *obj, QEvent *event) override {
+        // A combo box list opens as wide as the combo box only, so long
+        // items (and the scroll bar) got cut at the right. Widen it to its
+        // content and keep it on the screen.
+        if (event->type() == QEvent::Show) {
+            QWidget *popup = qobject_cast<QWidget*>(obj);
+            QComboBox *cb = popup ? qobject_cast<QComboBox*>(popup->parentWidget()) : nullptr;
+            if (cb && popup->isWindow())
+                fit_combo_popup(cb, popup);
+        }
+
         QWidget *w = qobject_cast<QWidget*>(obj);
         const bool choice = qobject_cast<QCheckBox*>(obj) != nullptr
                          || qobject_cast<QRadioButton*>(obj) != nullptr;
@@ -194,6 +213,40 @@ class MyStyle : public QProxyStyle
     }
 
 private:
+    static void fit_combo_popup(QComboBox *cb, QWidget *popup) {
+        QAbstractItemView *view = cb->view();
+        const int text_w = view->sizeHintForColumn(0);
+        if (text_w <= 0 || cb->count() == 0)
+            return;
+
+        // Frame, QSS padding and border of the list (without a scroll bar).
+        QScrollBar *sb = view->verticalScrollBar();
+        int chrome = view->width() - view->viewport()->width();
+        if (sb->isVisible())
+            chrome -= sb->width();
+
+        // A scroll bar is coming when the rows do not fit the height.
+        const int rows_h = view->sizeHintForRow(0) * cb->count();
+        const bool scrolls = rows_h > view->viewport()->height() + 1;
+        const int sb_w = scrolls ? sb->sizeHint().width() : 0;
+
+        const int need = text_w + chrome + sb_w + 4
+                       + (popup->width() - view->width());
+        if (popup->width() >= need)
+            return;
+
+        QRect r = popup->geometry();
+        r.setWidth(need);
+        if (QScreen *screen = cb->screen()) {
+            const QRect avail = screen->availableGeometry();
+            if (r.right() > avail.right())
+                r.moveRight(avail.right());
+            if (r.left() < avail.left())
+                r.moveLeft(avail.left());
+        }
+        popup->setGeometry(r);
+    }
+
     // The label that names `w`: its QFormLayout label or a buddy label.
     static QLabel* name_label(QWidget *w) {
         QWidget *p = w->parentWidget();
