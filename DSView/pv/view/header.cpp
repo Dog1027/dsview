@@ -48,6 +48,7 @@
 #include "../config/appconfig.h"
 #include "../ui/fn.h"
 #include "../log.h"
+#include "../ui/theme.h"
  
 using namespace std;
 
@@ -136,12 +137,143 @@ void Header::paintEvent(QPaintEvent*)
     font.setPointSizeF(fSize);
     painter.setFont(font);
 
+    const bool logic = _view.session().get_device()->get_work_mode() == LOGIC;
+    if (logic)
+        paint_lanes(painter, traces, w);
+
     for(auto t : traces)
 	{
         t->paint_label(painter, w, dragging ? QPoint(-1, -1) : _mouse_point, fore);
 	}
 
+    if (logic && !dragging && _view.hover_wave_x() >= 0)
+        paint_values(painter, traces, w);
+
 	painter.end();
+}
+
+// The row under the mouse (the same band as Viewport::paintHoverRow, which
+// it joins at the right) and, for logic channels, the lane line of the
+// waves running in under the name, fading in.
+void Header::paint_lanes(QPainter &p, std::vector<Trace*> &traces, int w)
+{
+    const ui::Theme &theme = ui::Theme::Instance();
+    p.save();
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    const int hy = _view.hover_point().y();
+    if (_view.hover_point().x() >= 0 && hy >= 0) {
+        const int pad = std::max(0, (_view.get_spanY() - _view.get_signalHeight()) / 2);
+        for (auto t : traces) {
+            if (!t->enabled() || t->rows_size() == 0)
+                continue;
+            const int top = t->get_y() - t->get_totalHeight() / 2 - pad;
+            const int bottom = t->get_y() + t->get_totalHeight() / 2 + pad;
+            if (hy < top || hy >= bottom)
+                continue;
+            QColor band = theme.color("hover", QColor(128, 128, 128));
+            band.setAlpha(150);
+            p.setPen(Qt::NoPen);
+            p.setBrush(band);
+            p.drawRoundedRect(QRectF(2, top + 1, w + 6, bottom - top - 2), 4, 4);
+            break;
+        }
+    }
+
+    QColor fore(QWidget::palette().color(QWidget::foregroundRole()));
+    p.setRenderHint(QPainter::Antialiasing, false);
+    for (auto t : traces) {
+        LogicSignal *s = dynamic_cast<LogicSignal*>(t);
+        if (s == NULL)
+            continue;
+        const QRectF name_rect = t->get_rect("name", t->get_y(), w);
+        const int low = t->get_y() + t->get_totalHeight() * 0.5 + 0.5f;
+        QColor c = s->wave_colour(fore);
+        c.setAlpha(t->enabled() ? 70 : 30);
+        QColor c0 = c;
+        c0.setAlpha(0);
+        QLinearGradient g(name_rect.left(), 0, w, 0);
+        g.setColorAt(0, c0);
+        g.setColorAt(1, c);
+        p.setPen(QPen(QBrush(g), 1));
+        p.drawLine(QPointF(name_rect.left(), low), QPointF(w, low));
+    }
+    p.restore();
+}
+
+// Values at the mouse x over the waves, left of the number tag: the level
+// of each logic channel, the annotation of each decoder row.
+void Header::paint_values(QPainter &p, std::vector<Trace*> &traces, int w)
+{
+    const ui::Theme &theme = ui::Theme::Instance();
+    const int x = _view.hover_wave_x();
+    const QFontMetrics fm(p.font());
+    QColor fore(QWidget::palette().color(QWidget::foregroundRole()));
+
+    p.save();
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    for (auto t : traces) {
+        if (!t->enabled())
+            continue;
+        const QRectF label_rect = t->get_rect("label", t->get_zero_vpos(), w);
+        const QRectF name_rect = t->get_rect("name", t->get_y(), w);
+        const qreal right = label_rect.left() - 6;
+        const int row_h = std::max(10, std::min(fm.height(), t->get_totalHeight() - 2));
+
+        if (LogicSignal *s = dynamic_cast<LogicSignal*>(t)) {
+            bool level;
+            if (!s->level_at(x, level))
+                continue;
+            const QString text = level ? "1" : "0";
+            const qreal pw = fm.horizontalAdvance(text) + 8;
+            const QRectF r(right - pw, t->get_y() - row_h / 2.0, pw, row_h);
+            const QColor wave = s->wave_colour(fore);
+            if (level) {
+                QColor fill = wave;
+                fill.setAlpha(70);
+                p.setPen(Qt::NoPen);
+                p.setBrush(fill);
+                p.drawRoundedRect(r, 3, 3);
+                p.setPen(wave);
+            }
+            else {
+                p.setPen(QPen(theme.color("border", QColor(80, 80, 80)), 1));
+                p.setBrush(Qt::NoBrush);
+                p.drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), 3, 3);
+                p.setPen(theme.color("text-muted", QColor(140, 140, 140)));
+            }
+            p.drawText(r, Qt::AlignCenter, text);
+        }
+        else if (DecodeTrace *d = dynamic_cast<DecodeTrace*>(t)) {
+            std::vector<std::pair<int, std::vector<QString>>> values;
+            d->values_at(x, values);
+            const qreal left = name_rect.left() + fm.horizontalAdvance(t->get_name()) + 8;
+            const qreal avail = right - left - 8;
+            if (avail < 12)
+                continue;
+            for (auto &v : values) {
+                // The longest text that fits, else the shortest, elided.
+                QString text;
+                for (const QString &a : v.second) {
+                    if (fm.horizontalAdvance(a) <= avail) {
+                        text = a;
+                        break;
+                    }
+                }
+                if (text.isEmpty())
+                    text = fm.elidedText(v.second.back(), Qt::ElideRight, avail);
+                const qreal pw = fm.horizontalAdvance(text) + 8;
+                const QRectF r(right - pw, v.first - row_h / 2.0, pw, row_h);
+                p.setPen(QPen(theme.color("border", QColor(80, 80, 80)), 1));
+                p.setBrush(theme.color("surface", QColor(50, 50, 50)));
+                p.drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), 3, 3);
+                p.setPen(theme.color("text", fore));
+                p.drawText(r, Qt::AlignCenter, text);
+            }
+        }
+    }
+    p.restore();
 }
 
 void Header::mouseDoubleClickEvent(QMouseEvent *event)

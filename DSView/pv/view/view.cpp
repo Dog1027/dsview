@@ -978,16 +978,27 @@ bool View::eventFilter(QObject *object, QEvent *event)
 		else
 			_hover_point = QPoint(-1, -1);
 
+        const int wave_x = (object == _ruler || object == _time_viewport)
+                         ? mouse_event->pos().x() : -1;
+        const bool values = wave_x != _hover_wave_x;
+        _hover_wave_x = wave_x;
+
 		hover_point_changed();
+        // The channel names show the values under the mouse.
+        if (values && _header && _device_agent->get_work_mode() == LOGIC)
+            _header->update();
         // The hover band of the row (Viewport::paintHoverRow) follows the
         // mouse over the channel names too.
         if (object == _header && _time_viewport)
             _time_viewport->QWidget::update();
 	} else if (type == QEvent::Leave) {
 		_hover_point = QPoint(-1, -1);
+        _hover_wave_x = -1;
 		hover_point_changed();
         if (_time_viewport)
             _time_viewport->QWidget::update();
+        if (_header)
+            _header->update();
 	}
 
 	return QObject::eventFilter(object, event);

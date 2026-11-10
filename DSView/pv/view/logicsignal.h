@@ -98,6 +98,9 @@ public:
     // current theme so it reads on the waveform background.
     QColor wave_colour(QColor fore);
 
+    // Level of the channel at view x; false if there is no data there.
+    bool level_at(int x, bool &level);
+
     bool measure(const QPointF &p, uint64_t &index0, uint64_t &index1, uint64_t &index2);
 
     bool is_by_edge(const QPointF &p, uint64_t &index, int radius);

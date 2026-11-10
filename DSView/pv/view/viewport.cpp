@@ -291,7 +291,9 @@ void Viewport::paintHoverRow(QPainter &p, std::vector<Trace*> &traces)
         p.setRenderHint(QPainter::Antialiasing, true);
         p.setPen(Qt::NoPen);
         p.setBrush(band);
-        p.drawRoundedRect(QRectF(2, top + 1, width() - 4, bottom - top - 2), 4, 4);
+        // Square at the left: the band goes on under the channel names
+        // (Header::paintEvent).
+        p.drawRoundedRect(QRectF(-8, top + 1, width() + 6, bottom - top - 2), 4, 4);
         p.restore();
         break;
     }

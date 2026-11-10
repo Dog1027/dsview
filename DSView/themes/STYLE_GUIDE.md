@@ -222,7 +222,16 @@ Waveforms, the ruler, channel rows and cursors are painted in C++.
   rows give up height for them down to 14 px, then the channels scroll
   (wheel over the names, Shift + wheel over the waves).
 - The row under the mouse (over the waves or its name) gets a faint
-  `@hover` band (`Viewport::paintHoverRow`).
+  `@hover` band, one piece across the names and the waves
+  (`Viewport::paintHoverRow`, `Header::paint_lanes`).
+- Channel names: the lane line of a logic channel runs in under its
+  name, fading in from the left (`Header::paint_lanes`).
+- Values under the mouse: while the mouse is over the waves or the
+  ruler, the names column shows, left of the number tag, the level of
+  each logic channel (`1`: channel colour tint; `0`: `@border` outline,
+  `@text-muted`) and the annotation of each decoder row at that row's
+  height (`@surface` chip, longest text that fits). The decoder's
+  channel list gives way to them (`Header::paint_values`).
 - Floating measurement (logic): a card like a menu (`@surface`,
   `@border`, radius 8) 14 px below right of the pointer, flipped at the
   view edges; title = channel name with its colour dot, names

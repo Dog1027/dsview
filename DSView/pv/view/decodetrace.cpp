@@ -297,6 +297,46 @@ void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColo
     p.restore();
 }
 
+void DecodeTrace::values_at(int x, std::vector<std::pair<int, std::vector<QString>>> &out)
+{
+    double samplerate = _decoder_stack->samplerate();
+    if (samplerate == 0.0)
+        samplerate = 1.0;
+
+    const double pos = (x + _view->offset()) * samplerate * _view->scale();
+    if (pos < 0)
+        return;
+    const uint64_t sample = (uint64_t)pos;
+
+    // Same row order and heights as paint_mid(); y is the row centre.
+    const int annotation_height = _view->get_decoderRowHeight();
+    int y = get_y() - (_totalHeight - annotation_height) * 0.5;
+
+    for (auto dec : _decoder_stack->stack()) {
+        if (!dec->shown()) {
+            y += annotation_height;
+            continue;
+        }
+        const std::map<const pv::data::decode::Row, bool> rows = _decoder_stack->get_rows_gshow();
+        for (auto i = rows.begin(); i != rows.end(); i++) {
+            if ((*i).first.decoder() != dec->decoder() ||
+                !_decoder_stack->has_annotations((*i).first) || !(*i).second)
+                continue;
+
+            std::vector<pv::data::decode::Annotation*> annotations;
+            _decoder_stack->get_annotation_subset(annotations, (*i).first, sample, sample);
+            for (pv::data::decode::Annotation *a : annotations) {
+                if (a->start_sample() <= sample && sample < a->end_sample()
+                    && !a->annotations().empty()) {
+                    out.push_back(std::make_pair(y, a->annotations()));
+                    break;
+                }
+            }
+            y += annotation_height;
+        }
+    }
+}
+
 void DecodeTrace::paint_fore(QPainter &p, int left, int right, QColor fore, QColor back)
 {
     (void)right;
@@ -624,6 +664,11 @@ int DecodeTrace::rows_size()
 void DecodeTrace::paint_type_options(QPainter &p, int right, const QPoint pt, QColor fore)
 {
     (void)pt;
+
+    // While the mouse is over the waves the values under it take this
+    // place (Header::paint_values).
+    if (_view->hover_wave_x() >= 0)
+        return;
 
     int y = get_y();
     const QRectF group_index_rect = get_rect(CHNLREG, y, right);

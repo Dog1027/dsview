@@ -118,6 +118,10 @@ public:
 	 **/
     void paint_mid(QPainter &p, int left, int right, QColor fore, QColor back);
 
+    // The annotation under view x in each shown row: (row centre y, its
+    // texts from long to short). Rows without one are left out.
+    void values_at(int x, std::vector<std::pair<int, std::vector<QString>>> &out);
+
 	/**
 	 * Paints the foreground layer of the trace with a QPainter
 	 * @param p the QPainter to paint into.

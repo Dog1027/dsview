@@ -25,6 +25,7 @@
 #define DSVIEW_PV_VIEW_HEADER_H
 
 #include <list>
+#include <vector>
 #include <utility>
 #include <QWidget>
 #include "../ui/uimanager.h"
@@ -46,6 +47,10 @@ public:
 	Header(View &parent);
 
     ~Header();
+
+private:
+    void paint_lanes(QPainter &p, std::vector<Trace*> &traces, int w);
+    void paint_values(QPainter &p, std::vector<Trace*> &traces, int w);
 
 private:
     pv::view::Trace* get_mTrace(int &action, const QPoint &pt);

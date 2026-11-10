@@ -380,6 +380,23 @@ void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QC
     p.restore();
 }
 
+bool LogicSignal::level_at(int x, bool &level)
+{
+    if (_data == NULL || _data->empty() || !_data->has_data(_probe->index))
+        return false;
+
+    const double pos = _data->samplerate() * _view->scale() * (_view->offset() + x);
+    if (pos < 0)
+        return false;
+
+    const uint64_t index = (uint64_t)pos;
+    if (index > _data->get_ring_sample_count() - 1)
+        return false;
+
+    level = _data->get_sample(index, get_index());
+    return true;
+}
+
 bool LogicSignal::measure(const QPointF &p, uint64_t &index0, uint64_t &index1, uint64_t &index2)
 {
     const float gap = abs(p.y() - get_y());

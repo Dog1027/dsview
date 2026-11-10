@@ -223,6 +223,12 @@ public:
         return _hover_point;
     }
 
+    // Mouse x over the waves or the ruler (not snapped), -1 elsewhere.
+    // The channel names show the values at this x.
+    inline int hover_wave_x(){
+        return _hover_wave_x;
+    }
+
 	void normalize_layout();
 
     // Vertical zoom of the logic channels (Ctrl + wheel). `factor` > 1
@@ -512,6 +518,7 @@ private:
     std::list<XCursor*> _xcursorList;
 
     QPoint      _hover_point;
+    int         _hover_wave_x = -1;
     dialogs::Calibration *_cali;
 
     bool        _dso_auto;
