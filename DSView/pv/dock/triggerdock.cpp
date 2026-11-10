@@ -781,8 +781,7 @@ void TriggerDock::setup_adv_tab()
     _serial_hex_lineEdit->setReadOnly(true);
 
     QCheckBox *hex_ckbox = new QCheckBox();
-    _serial_hex_ck_label = new QLabel();
-    hex_ckbox->setMaximumWidth(18);
+    _serial_hex_ck_label = hex_ckbox;
 
     QHBoxLayout *hex_lay = new QHBoxLayout();
     hex_lay->setSpacing(8);
@@ -790,9 +789,7 @@ void TriggerDock::setup_adv_tab()
     QWidget *hex_wid = new QWidget();
     hex_wid->setLayout(hex_lay);
     hex_lay->setAlignment(Qt::AlignLeft);
-    hex_lay->addWidget(_serial_hex_lineEdit);
     hex_lay->addWidget(hex_ckbox);
-    hex_lay->addWidget(_serial_hex_ck_label);
 
     connect(hex_ckbox, SIGNAL(clicked(bool)), this, SLOT(on_hex_checkbox_click(bool))); 
   
@@ -809,7 +806,6 @@ void TriggerDock::setup_adv_tab()
     serial_glayout->setVerticalSpacing(4);
     serial_glayout->setHorizontalSpacing(8);
 
-    row = 1;
     if (_cur_ch_num == 32) {
         _serial_start_ext32_lineEdit = new PopupLineEdit("X X X X X X X X X X X X X X X X", _serial_groupBox);
         _serial_start_ext32_lineEdit->setFont(font);
@@ -836,54 +832,26 @@ void TriggerDock::setup_adv_tab()
         connect(_serial_stop_ext32_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
         connect(_serial_edge_ext32_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
 
-        QWidget *serial0_value_exp_label = bits_label(31, 16, _serial_groupBox);
-        serial_glayout->addWidget(serial0_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_start_ext32_lineEdit, row, 1, 1, 3, Qt::AlignLeft);
-        QWidget *serial1_value_exp_label = bits_label(15, 0, _serial_groupBox);
-        serial_glayout->addWidget(serial1_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_start_label, row, 0);
-        serial_glayout->addWidget(_serial_start_lineEdit, row, 1, 1, 3, Qt::AlignLeft);
-
-        serial_glayout->setRowMinimumHeight(row++, 8);
-
-        QWidget *serial2_value_exp_label = bits_label(31, 16, _serial_groupBox);
-        serial_glayout->addWidget(serial2_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_stop_ext32_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
-        QWidget *serial3_value_exp_label = bits_label(15, 0, _serial_groupBox);
-        serial_glayout->addWidget(serial3_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_stop_label, row, 0);
-        serial_glayout->addWidget(_serial_stop_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
-
-        serial_glayout->setRowMinimumHeight(row++, 8);
-
-        QWidget *serial4_value_exp_label = bits_label(31, 16, _serial_groupBox);
-        serial_glayout->addWidget(serial4_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_edge_ext32_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
-        QWidget *serial5_value_exp_label = bits_label(15, 0, _serial_groupBox);
-        serial_glayout->addWidget(serial5_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_edge_label, row, 0);
-        serial_glayout->addWidget(_serial_edge_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
     }
-    else {
-        QWidget *serial0_value_exp_label = bits_label(15, 0, _serial_groupBox);
-        serial_glayout->addWidget(serial0_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_start_label, row, 0);
-        serial_glayout->addWidget(_serial_start_lineEdit, row, 1, 1, 3, Qt::AlignLeft);
 
-        serial_glayout->setRowMinimumHeight(row++, 8);
-
-        QWidget *serial1_value_exp_label = bits_label(15, 0, _serial_groupBox);
-        serial_glayout->addWidget(serial1_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_stop_label, row, 0);
-        serial_glayout->addWidget(_serial_stop_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
-
-        serial_glayout->setRowMinimumHeight(row++, 8);
-
-        QWidget *serial2_value_exp_label = bits_label(15, 0, _serial_groupBox);
-        serial_glayout->addWidget(serial2_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
-        serial_glayout->addWidget(_serial_edge_label, row, 0);
-        serial_glayout->addWidget(_serial_edge_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
-    }
+    // Start / stop / clock flags: bit numbers above each value field
+    // (two rows of fields with 32 channels).
+    auto add_flag = [&](QLabel *label, PopupLineEdit *ext32, PopupLineEdit *edit) {
+        if (row > 0)
+            serial_glayout->setRowMinimumHeight(row++, 6);
+        if (ext32 != NULL) {
+            serial_glayout->addWidget(bits_label(31, 16, _serial_groupBox), row++, 1, 1, 3, Qt::AlignLeft);
+            serial_glayout->addWidget(ext32, row++, 1, 1, 3, Qt::AlignLeft);
+        }
+        serial_glayout->addWidget(bits_label(15, 0, _serial_groupBox), row++, 1, 1, 3, Qt::AlignLeft);
+        serial_glayout->addWidget(label, row, 0);
+        serial_glayout->addWidget(edit, row++, 1, 1, 3, Qt::AlignLeft);
+    };
+    const bool ext = _cur_ch_num == 32;
+    row = 0;
+    add_flag(_serial_start_label, ext ? _serial_start_ext32_lineEdit : NULL, _serial_start_lineEdit);
+    add_flag(_serial_stop_label, ext ? _serial_stop_ext32_lineEdit : NULL, _serial_stop_lineEdit);
+    add_flag(_serial_edge_label, ext ? _serial_edge_ext32_lineEdit : NULL, _serial_edge_lineEdit);
 
     serial_glayout->setRowMinimumHeight(row++, 8);
     serial_glayout->addWidget(_serial_data_label, row, 0);
@@ -894,6 +862,7 @@ void TriggerDock::setup_adv_tab()
     serial_glayout->addWidget(_serial_value_label, row, 0);
     serial_glayout->addWidget(_serial_value_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
     serial_glayout->addWidget(_serial_hex_label, row, 0);
+    serial_glayout->addWidget(_serial_hex_lineEdit, row++, 1, Qt::AlignLeft);
     serial_glayout->addWidget(hex_wid, row++, 1, 1, 3);
 
     _serial_note_label = new QLabel(_serial_groupBox);

@@ -149,7 +149,7 @@ private:
     DsComboBox *_serial_bits_comboBox;
     QLabel *_serial_hex_label;
     PopupLineEdit *_serial_hex_lineEdit;
-    QLabel *_serial_hex_ck_label;
+    QCheckBox *_serial_hex_ck_label;
 
     QLabel *_serial_note_label;
     QLabel *_data_bits_label;
