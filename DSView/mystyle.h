@@ -27,6 +27,7 @@
 #include <QAbstractButton>
 #include <QComboBox>
 #include <QTabBar>
+#include <QDialogButtonBox>
 
 class MyStyle : public QProxyStyle
 {
@@ -48,6 +49,12 @@ class MyStyle : public QProxyStyle
         // OK / Cancel buttons: text only.
         if (hint == QStyle::SH_DialogButtonBox_ButtonsHaveIcons)
             return 0;
+#ifdef Q_OS_LINUX
+        // GNOME order: Cancel / No on the left, the button that does it
+        // (OK / Yes / Save) at the right end.
+        if (hint == QStyle::SH_DialogButtonLayout)
+            return QDialogButtonBox::GnomeLayout;
+#endif
         return QProxyStyle::styleHint(hint, option, widget, ret);
     }
 

@@ -1872,3 +1872,14 @@ QGroupBox#trigger_page
     margin-top: 0px;
     padding: 0px;
 }
+
+/* Message boxes: the main text is a heading when a detail text follows */
+QMessageBox QLabel#qt_msgbox_label[heading="true"]
+{
+    font-weight: 600;
+}
+
+QMessageBox QLabel#qt_msgbox_informativelabel
+{
+    color: @text-muted;
+}

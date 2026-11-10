@@ -29,6 +29,11 @@
 #include <QMouseEvent>
 #include <QVBoxLayout>
 #include <QAbstractButton>
+#include <QPushButton>
+#include <QGridLayout>
+#include <QLabel>
+#include <QStyle>
+#include <QTimer>
 #include "../dsvdef.h"
 #include "../ui/langresource.h"
 #include "../config/appconfig.h"
@@ -143,6 +148,80 @@ int DSMessageBox::exec()
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
     ui::set_form_font(this, font);
+
+    // No stock icon: the text says what it is about.
+    _msg->setIcon(QMessageBox::NoIcon);
+    _msg->setText(_msg->text().trimmed());
+
+    // With a detail text below it, the main text is the heading
+    // ("Dialogs" in theme.qss).
+    QLabel *heading = _msg->findChild<QLabel*>("qt_msgbox_label");
+    if (heading != NULL){
+        heading->setProperty("heading", !_msg->informativeText().isEmpty());
+        heading->style()->unpolish(heading);
+        heading->style()->polish(heading);
+    }
+
+    // Text aligned with the title, no empty icon column in front of it.
+    QGridLayout *grid = qobject_cast<QGridLayout*>(_msg->layout());
+    if (grid != NULL){
+        // QMessageBox sets its margins again when it is shown.
+        auto tidy = [grid]() {
+            grid->setContentsMargins(5, 8, 0, 0);
+            grid->setHorizontalSpacing(0);
+            grid->setVerticalSpacing(10);
+            // Without an icon Qt keeps a spacer in its place (row 0, column 0).
+            for (int i = 0; i < grid->count(); i++){
+                int r, c, rs, cs;
+                grid->getItemPosition(i, &r, &c, &rs, &cs);
+                QSpacerItem *sp = grid->itemAt(i)->spacerItem();
+                if (sp != NULL && r == 0 && c == 0)
+                    sp->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+            }
+            grid->setColumnStretch(0, 0);
+            grid->setColumnStretch(1, 1);
+            grid->invalidate();
+        };
+        tidy();
+        QTimer::singleShot(0, this, tidy);
+    }
+    if (QLabel *icon = _msg->findChild<QLabel*>("qt_msgboxex_icon_label"))
+        icon->setFixedWidth(0);
+    for (QLabel *label : _msg->findChildren<QLabel*>()){
+        label->setIndent(0);
+        label->setContentsMargins(0, 0, 0, 0);
+    }
+
+    // A comfortable minimum width, so short messages are not cramped.
+    if (grid != NULL && property("min_width_added").isNull()){
+        grid->addItem(new QSpacerItem(340, 0, QSizePolicy::Minimum, QSizePolicy::Fixed),
+                      grid->rowCount(), 0, 1, grid->columnCount());
+        setProperty("min_width_added", true);
+    }
+
+    // The default (blue) button is the one that does it (Yes / OK), not
+    // whichever button happens to come first.
+    if (_msg->defaultButton() == NULL){
+        for (QAbstractButton *b : _msg->buttons()){
+            QMessageBox::ButtonRole role = _msg->buttonRole(b);
+            QPushButton *pb = qobject_cast<QPushButton*>(b);
+            if (pb != NULL && (role == QMessageBox::YesRole || role == QMessageBox::AcceptRole)){
+                _msg->setDefaultButton(pb);
+                break;
+            }
+        }
+    }
+    // Only that button looks like the default one, even while another has
+    // the keyboard focus; Enter always presses it.
+    for (QAbstractButton *b : _msg->buttons()){
+        QPushButton *pb = qobject_cast<QPushButton*>(b);
+        if (pb != NULL)
+            pb->setAutoDefault(false);
+    }
+    if (QPushButton *def = _msg->defaultButton()){
+        def->setDefault(true);
+        QTimer::singleShot(0, def, [def]() { def->setFocus(); });
+    }
 
     if (_titlebar != NULL){
         _titlebar->update_font();
