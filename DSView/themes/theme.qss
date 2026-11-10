@@ -1857,3 +1857,18 @@ QPushButton#inline_search_icon:disabled
     background-color: transparent;
     border: none;
 }
+
+/* ================================================================
+ * Trigger panel
+ * ================================================================ */
+QLabel#trigger_hint
+{
+    color: @text-muted;
+}
+
+QGroupBox#trigger_page
+{
+    border: none;
+    margin-top: 0px;
+    padding: 0px;
+}

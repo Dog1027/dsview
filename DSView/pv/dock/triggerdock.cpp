@@ -33,6 +33,7 @@
 #include <QSplitter>
 #include <QInputMethodEvent>
 #include <QApplication>
+#include <QStandardItemModel>
 #include <math.h>
 #include <libsigrok.h>
 
@@ -130,6 +131,7 @@ TriggerDock::TriggerDock(QWidget *parent, SigSession *session) :
     _widget->setLayout(layout);
 
     this->setWidget(_widget);
+    this->setWidgetResizable(true);
     _widget->setObjectName("triggerWidget");
 
     ADD_UI(this);
@@ -151,7 +153,6 @@ void TriggerDock::retranslateUi()
     _serial_edge_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CLOCK_FLAG), "Clock Flag: "));
     _serial_data_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DATA_CHANNEL), "Data Channel: "));
     _serial_value_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DATA_VALUE), "Data Value: "));
-    _serial_groupBox->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SERIAL_TRIGGER), "Serial Trigger"));
     _serial_hex_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SERIAL_HEX), "Hex: "));
     _serial_hex_ck_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SERIAL_INPUT_AS_HEX), "Input hex"));
 
@@ -169,13 +170,11 @@ void TriggerDock::retranslateUi()
         _count_exp_label_list.at(i)->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_COUNTER), "Counter"));
     }
 
-    for (int i = 0; i < _contiguous_label_list.length(); i++){
-        _contiguous_label_list.at(i)->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CONTIGUOUS), "Contiguous"));
+    for (int i = 0; i < _contiguous_checkbox_list.length(); i++){
+        _contiguous_checkbox_list.at(i)->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CONTIGUOUS), "Contiguous"));
     }
 
-    for (int i = 0; i < _stage_groupBox_list.length(); i++){
-        _stage_groupBox_list.at(i)->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_STAGE), "Stage")+QString::number(i));
-    }
+    _stage_select_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_STAGE), "Stage"));
 
     for (int i = 0; i < _stage_note_label_list.length(); i++){
         _stage_note_label_list.at(i)->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SERIAL_NOTE_LABEL), 
@@ -229,13 +228,13 @@ void TriggerDock::widget_enable(int index)
     _adv_tabWidget->setDisabled(false);
     enable_stages = stages_comboBox->currentText().toInt();
 
-    for (int i = 0; i < enable_stages; i++) {
-        _stage_tabWidget->setTabEnabled(i, true);
+    // Only the stages in use can be picked.
+    QStandardItemModel *model = qobject_cast<QStandardItemModel*>(_stage_select->model());
+    for (int i = 0; i < TriggerStages && model != NULL; i++) {
+        model->item(i)->setEnabled(i < enable_stages);
     }
-
-    for (int i = enable_stages; i < TriggerStages; i++) {
-          _stage_tabWidget->setTabEnabled(i, false);
-    }
+    if (_stage_select->currentIndex() >= enable_stages)
+        _stage_select->setCurrentIndex(0);
 }
 
 void TriggerDock::value_changed()
@@ -538,6 +537,29 @@ void TriggerDock::set_session(QJsonObject ses)
     }
 }
 
+// Bit numbers shown above a trigger value field: "15   8 7   0".
+static QWidget* bits_label(int hi, int lo, QWidget *parent)
+{
+    QWidget *w = new QWidget(parent);
+    w->setObjectName("trigger_bits");   // width follows the value fields
+    QHBoxLayout *lay = new QHBoxLayout(w);
+    lay->setContentsMargins(8, 0, 10, 0);
+    lay->setSpacing(0);
+
+    auto add = [&](const QString &text) {
+        QLabel *l = new QLabel(text, w);
+        l->setObjectName("trigger_hint");
+        lay->addWidget(l);
+    };
+    const int mid = (hi + lo + 1) / 2;
+    add(QString::number(hi));
+    lay->addStretch(1);
+    add(QString("%1   %2").arg(mid).arg(mid - 1));
+    lay->addStretch(1);
+    add(QString::number(lo));
+    return w;
+}
+
 void TriggerDock::setup_adv_tab()
 {
     int row;
@@ -557,7 +579,6 @@ void TriggerDock::setup_adv_tab()
     _contiguous_checkbox_list.clear();
     _inv_exp_label_list.clear();
     _count_exp_label_list.clear();
-    _contiguous_label_list.clear();
     _stage_note_label_list.clear();
     _stage_groupBox_list.clear();
 
@@ -571,48 +592,45 @@ void TriggerDock::setup_adv_tab()
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
 
-    _stage_tabWidget = new QTabWidget(_widget);
-    _stage_tabWidget->setTabPosition(QTabWidget::East);
-    _stage_tabWidget->setUsesScrollButtons(false);
+    _stage_tabWidget = new QStackedWidget(_widget);
 
     const QString mask = "N N N N N N N N N N N N N N N N";
     QRegularExpression value_rx("[10XRFCxrfc ]+");
     QValidator *value_validator = new QRegularExpressionValidator(value_rx, _stage_tabWidget);
 
+    auto new_value_edit = [&](QWidget *parent) {
+        PopupLineEdit *edit = new PopupLineEdit("X X X X X X X X X X X X X X X X", parent);
+        edit->setFont(font);
+        edit->setValidator(value_validator);
+        edit->setMaxLength(TriggerProbes * 2 - 1);
+        edit->setInputMask(mask);
+        edit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+        return edit;
+    };
+
     for (int i = 0; i < TriggerStages; i++) {
-        DsComboBox *_logic_comboBox = new DsComboBox(_stage_tabWidget);
+        QWidget *page = new QWidget(_stage_tabWidget);
+
+        DsComboBox *_logic_comboBox = new DsComboBox(page);
         _logic_comboBox->addItem(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_OR), "Or"));
         _logic_comboBox->addItem(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_AND), "And"));
         _logic_comboBox->setCurrentIndex(1);
         _logic_comboBox_list.push_back(_logic_comboBox);
 
-        PopupLineEdit *_value0_lineEdit = new PopupLineEdit("X X X X X X X X X X X X X X X X", _stage_tabWidget);
-        _value0_lineEdit->setFont(font);
-        _value0_lineEdit->setValidator(value_validator);
-        _value0_lineEdit->setMaxLength(TriggerProbes * 2 - 1);
-        _value0_lineEdit->setInputMask(mask);
-        _value0_lineEdit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        PopupLineEdit *_value0_lineEdit = new_value_edit(page);
         _value0_lineEdit_list.push_back(_value0_lineEdit);
-        PopupLineEdit *_count_spinBox = new PopupLineEdit(_stage_tabWidget);
+        PopupLineEdit *_count_spinBox = new PopupLineEdit(page);
         _count_spinBox->set_number_mode(true);
         _count_spinBox->setRange(1, INT32_MAX);
-        //_count_spinBox->setButtonSymbols(QAbstractSpinBox::NoButtons);
         _count_spinBox_list.push_back(_count_spinBox);
-        DsComboBox *_inv0_comboBox = new DsComboBox(_stage_tabWidget);
-        //tr
+        DsComboBox *_inv0_comboBox = new DsComboBox(page);
         _inv0_comboBox->addItem("==");
         _inv0_comboBox->addItem("!=");
         _inv0_comboBox_list.push_back(_inv0_comboBox);
 
-        PopupLineEdit *_value1_lineEdit = new PopupLineEdit("X X X X X X X X X X X X X X X X", _stage_tabWidget);
-        _value1_lineEdit->setFont(font);
-        _value1_lineEdit->setValidator(value_validator);
-        _value1_lineEdit->setMaxLength(TriggerProbes * 2 - 1);
-        _value1_lineEdit->setInputMask(mask);
-        _value1_lineEdit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        PopupLineEdit *_value1_lineEdit = new_value_edit(page);
         _value1_lineEdit_list.push_back(_value1_lineEdit);
-        DsComboBox *_inv1_comboBox = new DsComboBox(_stage_tabWidget);
-        //tr
+        DsComboBox *_inv1_comboBox = new DsComboBox(page);
         _inv1_comboBox->addItem("==");
         _inv1_comboBox->addItem("!=");
         _inv1_comboBox_list.push_back(_inv1_comboBox);
@@ -620,111 +638,95 @@ void TriggerDock::setup_adv_tab()
         connect(_value0_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
         connect(_value1_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
 
-        QCheckBox *_contiguous_checkbox = new QCheckBox(_stage_tabWidget);
+        QCheckBox *_contiguous_checkbox = new QCheckBox(page);
         _contiguous_checkbox_list.push_back(_contiguous_checkbox);
 
-        QLabel *value0_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _stage_tabWidget);
-        value0_exp_label->setFont(font);
-        QLabel *inv0_exp_label = new QLabel(_stage_tabWidget);
+        QLabel *inv0_exp_label = new QLabel(page);
+        inv0_exp_label->setObjectName("trigger_hint");
         _inv_exp_label_list.push_back(inv0_exp_label);
-        QLabel *value1_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _stage_tabWidget);
-        value1_exp_label->setFont(font);
-        QLabel *inv1_exp_label = new QLabel(_stage_tabWidget);
+        QLabel *inv1_exp_label = new QLabel(page);
+        inv1_exp_label->setObjectName("trigger_hint");
         _inv_exp_label_list.push_back(inv1_exp_label);
 
-        QLabel *count_exp_label = new QLabel(_stage_tabWidget);
+        QLabel *count_exp_label = new QLabel(page);
         _count_exp_label_list.push_back(count_exp_label);
 
-        QVBoxLayout *stage_layout = new QVBoxLayout();
+        // Two conditions, each: bit numbers, value field and ==/!=,
+        // joined by And/Or.
         QGridLayout *stage_glayout = new QGridLayout();
-        stage_glayout->setVerticalSpacing(5);
+        stage_glayout->setContentsMargins(0, 0, 0, 0);
+        stage_glayout->setVerticalSpacing(4);
         stage_glayout->setHorizontalSpacing(8);
+        stage_glayout->setColumnStretch(2, 1);
 
-        row = 1;
-        if (_cur_ch_num == 32) {
-            PopupLineEdit *_value0_ext32_lineEdit = new PopupLineEdit("X X X X X X X X X X X X X X X X", _stage_tabWidget);
-            _value0_ext32_lineEdit->setFont(font);
-            _value0_ext32_lineEdit->setValidator(value_validator);
-            _value0_ext32_lineEdit->setMaxLength(TriggerProbes * 2 - 1);
-            _value0_ext32_lineEdit->setInputMask(mask);
-            _value0_ext32_lineEdit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-            _value0_ext32_lineEdit_list.push_back(_value0_ext32_lineEdit);
+        row = 0;
+        for (int cond = 0; cond < 2; cond++) {
+            PopupLineEdit *value = cond == 0 ? _value0_lineEdit : _value1_lineEdit;
+            DsComboBox *inv = cond == 0 ? _inv0_comboBox : _inv1_comboBox;
 
-            PopupLineEdit *_value1_ext32_lineEdit = new PopupLineEdit("X X X X X X X X X X X X X X X X", _stage_tabWidget);
-            _value1_ext32_lineEdit->setFont(font);
-            _value1_ext32_lineEdit->setValidator(value_validator);
-            _value1_ext32_lineEdit->setMaxLength(TriggerProbes * 2 - 1);
-            _value1_ext32_lineEdit->setInputMask(mask);
-            _value1_ext32_lineEdit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-            _value1_ext32_lineEdit_list.push_back(_value1_ext32_lineEdit);
-
-            QLabel *value0_ext32_exp_label = new QLabel("31 --------- 24 23 ---------- 16", _stage_tabWidget);
-            value0_ext32_exp_label->setFont(font);
-            QLabel *value1_ext32_exp_label = new QLabel("31 --------- 24 23 ---------- 16", _stage_tabWidget);
-            value1_ext32_exp_label->setFont(font);
-
-            stage_glayout->addWidget(value0_ext32_exp_label, row++, 0);
-            stage_glayout->addWidget(_value0_ext32_lineEdit, row++, 0);
-            stage_glayout->addWidget(value0_exp_label, row, 0);
-            stage_glayout->addWidget(inv0_exp_label, row++, 1);
-            stage_glayout->addWidget(_value0_lineEdit, row, 0);
-            stage_glayout->addWidget(_inv0_comboBox, row, 1);
-            stage_glayout->addWidget(_logic_comboBox, row++, 2);
-
-            stage_glayout->addWidget(new QLabel(_stage_tabWidget), row++, 0);
-
-            stage_glayout->addWidget(value1_ext32_exp_label, row++, 0);
-            stage_glayout->addWidget(_value1_ext32_lineEdit, row++, 0);
-            stage_glayout->addWidget(value1_exp_label, row, 0);
-            stage_glayout->addWidget(inv1_exp_label, row++, 1);
-            stage_glayout->addWidget(_value1_lineEdit, row, 0);
-            stage_glayout->addWidget(_inv1_comboBox, row++, 1);          
-
-            connect(_value0_ext32_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
-            connect(_value1_ext32_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
-        }
-        else {
-            stage_glayout->addWidget(value0_exp_label, row, 0);
-            stage_glayout->addWidget(inv0_exp_label, row++, 1);
-            stage_glayout->addWidget(_value0_lineEdit, row, 0);
-            stage_glayout->addWidget(_inv0_comboBox, row, 1);
-            stage_glayout->addWidget(_logic_comboBox, row++, 2);
-
-            stage_glayout->addWidget(new QLabel(_stage_tabWidget), row++, 0);
-
-            stage_glayout->addWidget(value1_exp_label, row, 0);
-            stage_glayout->addWidget(inv1_exp_label, row++, 1);
-            stage_glayout->addWidget(_value1_lineEdit, row, 0);
-            stage_glayout->addWidget(_inv1_comboBox, row++, 1);
+            if (cond == 1) {
+                stage_glayout->addWidget(_logic_comboBox, row++, 0, Qt::AlignLeft);
+            }
+            if (_cur_ch_num == 32) {
+                PopupLineEdit *ext = new_value_edit(page);
+                (cond == 0 ? _value0_ext32_lineEdit_list : _value1_ext32_lineEdit_list).push_back(ext);
+                connect(ext, SIGNAL(editingFinished()), this, SLOT(value_changed()));
+                stage_glayout->addWidget(bits_label(31, 16, page), row++, 0, 1, 1, Qt::AlignLeft);
+                stage_glayout->addWidget(ext, row++, 0, 1, 1, Qt::AlignLeft);
+            }
+            stage_glayout->addWidget(bits_label(15, 0, page), row, 0, 1, 1, Qt::AlignLeft);
+            stage_glayout->addWidget(cond == 0 ? inv0_exp_label : inv1_exp_label, row++, 1);
+            stage_glayout->addWidget(value, row, 0, 1, 1, Qt::AlignLeft);
+            stage_glayout->addWidget(inv, row++, 1);
         }
 
-        stage_glayout->addWidget(new QLabel(_stage_tabWidget), row++, 0);
+        QHBoxLayout *count_row = new QHBoxLayout();
+        count_row->setSpacing(8);
+        count_row->addWidget(count_exp_label);
+        count_row->addWidget(_count_spinBox, 1);
 
-        QLabel *contiguous_label = new QLabel(_stage_tabWidget);
-        _contiguous_label_list.push_back(contiguous_label);
-        stage_glayout->addWidget(contiguous_label, row, 1, 1, 2);
-        stage_glayout->addWidget(_contiguous_checkbox, row++, 0, 1, 1, Qt::AlignRight);
-        stage_glayout->addWidget(count_exp_label, row, 1, 1, 2);
-        stage_glayout->addWidget(_count_spinBox, row++, 0);
-
-        stage_layout->addLayout(stage_glayout);
-        stage_layout->addSpacing(20);
-        QLabel *stage_note_label = new QLabel(_stage_tabWidget);
+        QLabel *stage_note_label = new QLabel(page);
+        stage_note_label->setObjectName("trigger_hint");
         _stage_note_label_list.push_back(stage_note_label);
+
+        QVBoxLayout *stage_layout = new QVBoxLayout(page);
+        stage_layout->setContentsMargins(0, 8, 0, 0);
+        stage_layout->setSpacing(8);
+        stage_layout->addLayout(stage_glayout);
+        stage_layout->addSpacing(4);
+        stage_layout->addLayout(count_row);
+        stage_layout->addWidget(_contiguous_checkbox);
+        stage_layout->addSpacing(8);
         stage_layout->addWidget(stage_note_label);
         stage_layout->addStretch(1);
 
-        QGroupBox *stage_groupBox = new QGroupBox(_stage_tabWidget);
-        stage_groupBox->setContentsMargins(5, 15, 5, 5);
-        stage_groupBox->setFlat(true);
-        stage_groupBox->setLayout(stage_layout);
-        _stage_groupBox_list.push_back(stage_groupBox);
-
-        _stage_tabWidget->addTab((QWidget *)stage_groupBox, QString::number(i));
+        _stage_groupBox_list.push_back(page);
+        _stage_tabWidget->addWidget(page);
     }
 
+    // The "Stage Trigger" tab: a stage picker above the page of that stage.
+    QWidget *stage_page = new QWidget(_widget);
+    _stage_select_label = new QLabel(stage_page);
+    _stage_select_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_STAGE), "Stage"));
+    _stage_select = new DsComboBox(stage_page);
+    for (int i = 0; i < TriggerStages; i++)
+        _stage_select->addItem(QString::number(i));
+    connect(_stage_select, SIGNAL(currentIndexChanged(int)), _stage_tabWidget, SLOT(setCurrentIndex(int)));
+
+    QHBoxLayout *select_row = new QHBoxLayout();
+    select_row->setSpacing(8);
+    select_row->addWidget(_stage_select_label);
+    select_row->addWidget(_stage_select);
+    select_row->addStretch(1);
+
+    QVBoxLayout *stage_page_layout = new QVBoxLayout(stage_page);
+    stage_page_layout->setContentsMargins(0, 10, 0, 0);
+    stage_page_layout->setSpacing(4);
+    stage_page_layout->addLayout(select_row);
+    stage_page_layout->addWidget(_stage_tabWidget, 1);
+
     _serial_groupBox = new QGroupBox(_widget);
-    _serial_groupBox->setContentsMargins(5, 15, 5, 5);
+    _serial_groupBox->setObjectName("trigger_page");
     _serial_groupBox->setFlat(true);
 
     _serial_start_label = new QLabel(_serial_groupBox);
@@ -801,8 +803,10 @@ void TriggerDock::setup_adv_tab()
     }
 
     QVBoxLayout *serial_layout = new QVBoxLayout();
+    serial_layout->setContentsMargins(0, 10, 0, 0);
     QGridLayout *serial_glayout = new QGridLayout();
-    serial_glayout->setVerticalSpacing(5);
+    serial_glayout->setColumnStretch(3, 1);
+    serial_glayout->setVerticalSpacing(4);
     serial_glayout->setHorizontalSpacing(8);
 
     row = 1;
@@ -832,81 +836,70 @@ void TriggerDock::setup_adv_tab()
         connect(_serial_stop_ext32_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
         connect(_serial_edge_ext32_lineEdit, SIGNAL(editingFinished()), this, SLOT(value_changed()));
 
-        QLabel *serial0_value_exp_label = new QLabel("31 --------- 24 23 ---------- 16", _serial_groupBox);
-        serial0_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial0_value_exp_label, row++, 1, 1, 3);
-        serial_glayout->addWidget(_serial_start_ext32_lineEdit, row, 1, 1, 3);
-        serial_glayout->addWidget(new QLabel(_serial_groupBox), row++, 4);
-        QLabel *serial1_value_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _serial_groupBox);
-        serial1_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial1_value_exp_label, row++, 1, 1, 3);
+        QWidget *serial0_value_exp_label = bits_label(31, 16, _serial_groupBox);
+        serial_glayout->addWidget(serial0_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
+        serial_glayout->addWidget(_serial_start_ext32_lineEdit, row, 1, 1, 3, Qt::AlignLeft);
+        QWidget *serial1_value_exp_label = bits_label(15, 0, _serial_groupBox);
+        serial_glayout->addWidget(serial1_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
         serial_glayout->addWidget(_serial_start_label, row, 0);
-        serial_glayout->addWidget(_serial_start_lineEdit, row, 1, 1, 3);
-        serial_glayout->addWidget(new QLabel(_serial_groupBox), row++, 4);
+        serial_glayout->addWidget(_serial_start_lineEdit, row, 1, 1, 3, Qt::AlignLeft);
 
-        serial_glayout->addWidget(new QLabel(_stage_tabWidget), row++, 0);
+        serial_glayout->setRowMinimumHeight(row++, 8);
 
-        QLabel *serial2_value_exp_label = new QLabel("31 --------- 24 23 ---------- 16", _serial_groupBox);
-        serial2_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial2_value_exp_label, row++, 1, 1, 3);
-        serial_glayout->addWidget(_serial_stop_ext32_lineEdit, row++, 1, 1, 3);
-        QLabel *serial3_value_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _serial_groupBox);
-        serial3_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial3_value_exp_label, row++, 1, 1, 3);
+        QWidget *serial2_value_exp_label = bits_label(31, 16, _serial_groupBox);
+        serial_glayout->addWidget(serial2_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
+        serial_glayout->addWidget(_serial_stop_ext32_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
+        QWidget *serial3_value_exp_label = bits_label(15, 0, _serial_groupBox);
+        serial_glayout->addWidget(serial3_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
         serial_glayout->addWidget(_serial_stop_label, row, 0);
-        serial_glayout->addWidget(_serial_stop_lineEdit, row++, 1, 1, 3);
+        serial_glayout->addWidget(_serial_stop_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
 
-        serial_glayout->addWidget(new QLabel(_stage_tabWidget), row++, 0);
+        serial_glayout->setRowMinimumHeight(row++, 8);
 
-        QLabel *serial4_value_exp_label = new QLabel("31 --------- 24 23 ---------- 16", _serial_groupBox);
-        serial4_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial4_value_exp_label, row++, 1, 1, 3);
-        serial_glayout->addWidget(_serial_edge_ext32_lineEdit, row++, 1, 1, 3);
-        QLabel *serial5_value_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _serial_groupBox);
-        serial5_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial5_value_exp_label, row++, 1, 1, 3);
+        QWidget *serial4_value_exp_label = bits_label(31, 16, _serial_groupBox);
+        serial_glayout->addWidget(serial4_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
+        serial_glayout->addWidget(_serial_edge_ext32_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
+        QWidget *serial5_value_exp_label = bits_label(15, 0, _serial_groupBox);
+        serial_glayout->addWidget(serial5_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
         serial_glayout->addWidget(_serial_edge_label, row, 0);
-        serial_glayout->addWidget(_serial_edge_lineEdit, row++, 1, 1, 3);
+        serial_glayout->addWidget(_serial_edge_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
     }
     else {
-        QLabel *serial0_value_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _serial_groupBox);
-        serial0_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial0_value_exp_label, row++, 1, 1, 3);
+        QWidget *serial0_value_exp_label = bits_label(15, 0, _serial_groupBox);
+        serial_glayout->addWidget(serial0_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
         serial_glayout->addWidget(_serial_start_label, row, 0);
-        serial_glayout->addWidget(_serial_start_lineEdit, row, 1, 1, 3);
-        serial_glayout->addWidget(new QLabel(_serial_groupBox), row++, 4);
+        serial_glayout->addWidget(_serial_start_lineEdit, row, 1, 1, 3, Qt::AlignLeft);
 
-        serial_glayout->addWidget(new QLabel(_stage_tabWidget), row++, 0);
+        serial_glayout->setRowMinimumHeight(row++, 8);
 
-        QLabel *serial1_value_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _serial_groupBox);
-        serial1_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial1_value_exp_label, row++, 1, 1, 3);
+        QWidget *serial1_value_exp_label = bits_label(15, 0, _serial_groupBox);
+        serial_glayout->addWidget(serial1_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
         serial_glayout->addWidget(_serial_stop_label, row, 0);
-        serial_glayout->addWidget(_serial_stop_lineEdit, row++, 1, 1, 3);
+        serial_glayout->addWidget(_serial_stop_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
 
-        serial_glayout->addWidget(new QLabel(_stage_tabWidget), row++, 0);
+        serial_glayout->setRowMinimumHeight(row++, 8);
 
-        QLabel *serial2_value_exp_label = new QLabel("15 ---------- 8 7 ----------- 0 ", _serial_groupBox);
-        serial2_value_exp_label->setFont(font);
-        serial_glayout->addWidget(serial2_value_exp_label, row++, 1, 1, 3);
+        QWidget *serial2_value_exp_label = bits_label(15, 0, _serial_groupBox);
+        serial_glayout->addWidget(serial2_value_exp_label, row++, 1, 1, 3, Qt::AlignLeft);
         serial_glayout->addWidget(_serial_edge_label, row, 0);
-        serial_glayout->addWidget(_serial_edge_lineEdit, row++, 1, 1, 3);
+        serial_glayout->addWidget(_serial_edge_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
     }
 
-    serial_glayout->addWidget(new QLabel(_serial_groupBox), row++, 0, 1, 5);
+    serial_glayout->setRowMinimumHeight(row++, 8);
     serial_glayout->addWidget(_serial_data_label, row, 0);
     serial_glayout->addWidget(_serial_data_comboBox, row++, 1);
     _data_bits_label = new QLabel(_serial_groupBox);
     serial_glayout->addWidget(_data_bits_label, row, 0);
     serial_glayout->addWidget(_serial_bits_comboBox, row++, 1);
     serial_glayout->addWidget(_serial_value_label, row, 0);
-    serial_glayout->addWidget(_serial_value_lineEdit, row++, 1, 1, 3);
+    serial_glayout->addWidget(_serial_value_lineEdit, row++, 1, 1, 3, Qt::AlignLeft);
     serial_glayout->addWidget(_serial_hex_label, row, 0);
     serial_glayout->addWidget(hex_wid, row++, 1, 1, 3);
 
     _serial_note_label = new QLabel(_serial_groupBox);
+    _serial_note_label->setObjectName("trigger_hint");
     serial_layout->addLayout(serial_glayout);
-    serial_layout->addSpacing(20);
+    serial_layout->addSpacing(16);
     serial_layout->addWidget(_serial_note_label);
     serial_layout->addStretch(1);
 
@@ -923,7 +916,7 @@ void TriggerDock::setup_adv_tab()
     connect(_serial_hex_lineEdit, SIGNAL(editingFinished()), 
                 this, SLOT(on_serial_hex_changed()));
 
-    _adv_tabWidget->addTab((QWidget *)_stage_tabWidget, L_S(STR_PAGE_DLG, S_ID(IDS_DLG_STAGE_TRIGGER), "Stage Trigger"));
+    _adv_tabWidget->addTab(stage_page, L_S(STR_PAGE_DLG, S_ID(IDS_DLG_STAGE_TRIGGER), "Stage Trigger"));
     _adv_tabWidget->addTab((QWidget *)_serial_groupBox, L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SERIAL_TRIGGER), "Serial Trigger"));
 
     UpdateFont();
@@ -1082,44 +1075,23 @@ void TriggerDock::UpdateFont()
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
     ui::set_form_font(this, font);
-    font.setPointSizeF(font.pointSizeF() + 1);
-    this->parentWidget()->setFont(font);
-    
-    _adv_tabWidget->setFont(font);
-    _adv_tabWidget->widget(0)->setFont(font);
-    _adv_tabWidget->widget(1)->setFont(font);
+
+    for (auto o : this->findChildren<QAbstractButton*>())
+        o->setFont(font);
     _adv_tabWidget->tabBar()->setFont(font);
 
-    QFont font2 = this->font();
-    font2.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
-    QFontMetrics fm(font2);  
+    QFontMetrics fm(font);
 
-    auto edits = this->findChildren<PopupLineEdit*>();
-    int lineH = 30;
-
-    for(auto o : edits)
-    { 
-        if (o != _serial_hex_lineEdit && o->text() != "")
-        { 
-            QRect rc = fm.boundingRect(o->text());
-            QSize size(rc.width() + 20, rc.height() + 6); 
-            o->setMinimumSize(size);
-            lineH = size.height();
-        }       
+    // Value fields: just wide enough for the 16 bits, so the bit numbers
+    // above them line up with the characters.
+    const int value_width = fm.horizontalAdvance("X X X X X X X X X X X X X X X X") + 22;
+    for (auto o : this->findChildren<PopupLineEdit*>())
+    {
+        if (o->inputMask() != "")
+            o->setFixedWidth(value_width);
     }
-
-    _serial_hex_lineEdit->setFixedHeight(lineH);
-
-    int lines = 3 * 2;
-    if (_cur_ch_num == 32){
-        lines = 6 * 2;
-    }
- 
-    int pageHeight = (lineH + 15) * lines;
-    pageHeight += lineH * 10;
-    pageHeight += 250;
-  
-    _serial_groupBox->setFixedHeight(pageHeight);
+    for (auto o : this->findChildren<QWidget*>("trigger_bits"))
+        o->setFixedWidth(value_width);
 }
 
 } // namespace dock

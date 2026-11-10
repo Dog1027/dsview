@@ -38,6 +38,7 @@
 #include <QHBoxLayout>
 #include <QScrollArea>
 #include <vector>
+#include <QStackedWidget>
 #include "../ui/dscombobox.h"
 #include "../interface/icallbacks.h"
 #include "../ui/uimanager.h"
@@ -113,9 +114,12 @@ private:
     QLabel *_stages_label;
     DsComboBox *stages_comboBox;
 
-    QTabWidget *_stage_tabWidget;
+    // One page per stage; the page shown is picked with _stage_select.
+    QStackedWidget *_stage_tabWidget;
+    QLabel *_stage_select_label;
+    DsComboBox *_stage_select;
 
-    QVector <QGroupBox *> _stage_groupBox_list;
+    QVector <QWidget *> _stage_groupBox_list;
     QVector <QLabel *>    _mu_label_list;
     QVector <DsComboBox *> _logic_comboBox_list;
     QVector <PopupLineEdit *> _value0_lineEdit_list;
@@ -153,7 +157,6 @@ private:
 
     QVector <QLabel *>  _inv_exp_label_list;
     QVector <QLabel *>  _count_exp_label_list;
-    QVector <QLabel *>  _contiguous_label_list;
     QVector <QLabel *>  _stage_note_label_list;
 
 };
