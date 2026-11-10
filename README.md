@@ -14,40 +14,14 @@ layout with dark and light themes.
 
 ## What's different
 
-**Layout**
-- One top bar for device, work mode, capture settings and the run button;
-  the work mode (logic analyzer, oscilloscope, data acquisition) is a
-  selector instead of separate toolbars.
-- Panels (trigger, measurements, decoders, search) open from an activity bar
-  on the right and stack in one side area.
-- A status bar shows the device, the mode and what was captured
-  (time, sample count, duration and rate).
-
-**Waveforms**
-- Channel names in their own column, with lane lines and a hover band that
-  runs across names and waves.
-- Hovering shows the level or decoded value of every row at the mouse.
-- Measurement data, decoder annotations, cursors and rulers use a monospace
-  font with tabular digits, so numbers line up and don't jump.
-- Edge counts and jump measurements appear as small cards on the waveform.
-
-**Dialogs and controls**
-- Dark and light themes built from one stylesheet and a palette per theme
-  (`DSView/themes/`).
-- Dialogs size themselves to their content instead of using fixed sizes, so
-  nothing is clipped with larger fonts.
-- Buttons follow one order and width per row; the default button is filled
-  with the accent colour, Cancel is a quieter outline.
-- A visible keyboard focus ring on every control, including check boxes and
-  radio buttons.
-- Settings are grouped under titles (e.g. FFT options), labels without
-  trailing colons.
-
-**Other**
-- New app icon: a square wave running into a sine, for logic plus analog.
-- No "open the user guide?" prompt on every start (Help → Manual still
-  opens it).
-- Flatpak packaging, see [Flatpak](#flatpak).
+- **Dark and light themes**, flat and consistent across every window.
+- **One top bar** for device, mode and capture settings; panels open from
+  an activity bar on the right; a status bar shows what was captured.
+- **Easier-to-read waveforms**: a names column, values under the mouse,
+  monospace numbers, measurements shown as cards.
+- **Dialogs that fit their content**, with consistent buttons and a
+  visible keyboard focus ring.
+- **New app icon**, no start-up prompt, and a Flatpak package.
 
 Design rules for contributors are in
 [DSView/themes/STYLE_GUIDE.md](DSView/themes/STYLE_GUIDE.md); the theme files
