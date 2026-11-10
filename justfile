@@ -9,8 +9,10 @@
 #
 # Overridable on the command line, e.g. `just scope=user install`:
 #   scope    system (default) or user installation
-#   flatpak  command used for install/run/uninstall
-#   sudo     command used for the udev rule
+#   host     prefix for the commands that act on the installation
+#            (install/run/uninstall/udev); `just box` sets it
+#
+# System installs and the udev rule ask for your password through sudo.
 #
 # Building inside a distrobox and installing on the host: `just box`.
 
@@ -22,8 +24,11 @@ work     := "/var/tmp/dsview-fp"          # build state, outside $HOME
 bundle   := "DSView.flatpak"
 
 scope    := "system"
-flatpak  := "flatpak"
-sudo     := "sudo"
+host     := ""
+# Installing a bundle into the system installation always needs admin
+# rights (polkit auth_admin); sudo asks in the terminal instead of relying
+# on a desktop password dialog.
+admin    := if scope == "system" { "sudo" } else { "" }
 
 # List the recipes
 [private]
@@ -46,22 +51,22 @@ bundle: build
 
 # Install (or replace) the bundle
 install:
-    {{flatpak}} install --{{scope}} --reinstall -y {{bundle}}
+    {{host}} {{admin}} flatpak install --{{scope}} --reinstall -y {{bundle}}
 
 # Start the installed app
 run *args:
-    {{flatpak}} run {{app}} {{args}}
+    {{host}} flatpak run {{app}} {{args}}
 
 # Remove the app and any runtime no longer used (settings are kept)
 uninstall:
-    {{flatpak}} uninstall --{{scope}} -y {{app}}
-    {{flatpak}} uninstall --{{scope}} -y --unused
+    {{host}} {{admin}} flatpak uninstall --{{scope}} -y {{app}}
+    {{host}} {{admin}} flatpak uninstall --{{scope}} -y --unused
 
 # Install the USB udev rule (once; then replug the instrument)
 udev:
-    {{sudo}} install -m 644 DSView/DreamSourceLab.rules /etc/udev/rules.d/60-dreamsourcelab.rules
-    {{sudo}} udevadm control --reload
-    {{sudo}} udevadm trigger
+    {{host}} sudo install -m 644 DSView/DreamSourceLab.rules /etc/udev/rules.d/60-dreamsourcelab.rules
+    {{host}} sudo udevadm control --reload
+    {{host}} sudo udevadm trigger
 
 # Drop the build dir and bundle (keeps downloaded sources)
 clean:

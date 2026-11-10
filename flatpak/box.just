@@ -7,7 +7,7 @@
 # distrobox-host-exec.
 
 main := "just --justfile " + justfile()
-hostside := main + " flatpak='distrobox-host-exec flatpak' sudo='distrobox-host-exec sudo'"
+hostside := main + " host=distrobox-host-exec"
 
 # List the recipes
 [private]

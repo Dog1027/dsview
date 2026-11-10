@@ -27,8 +27,8 @@ Everyday use
     just uninstall    # remove the app and runtimes nothing else uses
 
 Other recipes: `build`, `bundle`, `install`, `clean`, `clean-all`.
-The app goes into the system installation; `just scope=user deploy` puts
-it in your user installation instead. Build state lives in
+The app goes into the system installation (sudo asks for your password);
+`just scope=user deploy` puts it in your user installation instead. Build state lives in
 `/var/tmp/dsview-fp`, not in your home folder.
 
 Building in a distrobox
