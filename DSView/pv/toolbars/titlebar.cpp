@@ -228,13 +228,15 @@ void TitleBar::mousePressEvent(QMouseEvent* event)
         if (!bTopWidow || bClick ){
             // On Wayland an application can't position its own window,
             // so move() does nothing: let the compositor move it instead.
-            if (_titleParent == NULL && QGuiApplication::platformName() == "wayland")
+            // (On Linux _titleParent is the MainFrame itself, so don't test it.)
+            if (QGuiApplication::platformName() == "wayland")
             {
                 QWindow *win = _parent->window()->windowHandle();
                 if (win != NULL && win->startSystemMove()){
                     event->accept();
                     return;
                 }
+                dsv_info("TitleBar: startSystemMove() failed, falling back to move().");
             }
 
             _is_draging = true;             

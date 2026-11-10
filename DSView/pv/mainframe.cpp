@@ -587,6 +587,7 @@ bool MainFrame::eventFilter(QObject *object, QEvent *event)
             if (edges != Qt::Edges() && windowHandle()->startSystemResize(edges)){
                 return true;
             }
+            dsv_info("MainFrame: startSystemResize() failed, falling back to setGeometry().");
         }
 
         if (mouse_event->button() == Qt::LeftButton) 
