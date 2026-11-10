@@ -74,9 +74,13 @@ MeasureDock::MeasureDock(QWidget *parent, View &view, SigSession *session) :
     _f_label = new QLabel(_widget);
     _d_label = new QLabel(_widget);
 
+    // Group boxes: inner margins and row spacing from the style guide.
+    const QMargins group_margins(12, 10, 12, 12);
+
     QGridLayout *mouse_layout = new QGridLayout();
-    mouse_layout->setVerticalSpacing(5);
-    mouse_layout->setHorizontalSpacing(5);
+    mouse_layout->setVerticalSpacing(6);
+    mouse_layout->setHorizontalSpacing(6);
+    mouse_layout->setColumnStretch(2, 1);
     mouse_layout->addWidget(_fen_checkBox, 0, 0, 1, 5);
     mouse_layout->addWidget(_w_label, 1, 0);
     mouse_layout->addWidget(_width_label, 1, 1);
@@ -89,55 +93,61 @@ MeasureDock::MeasureDock(QWidget *parent, View &view, SigSession *session) :
     mouse_layout->addWidget(_freq_label, 2, 4);    
  
     _mouse_groupBox->setLayout(mouse_layout);
-    mouse_layout->setContentsMargins(5, 15, 5, 5);
+    mouse_layout->setContentsMargins(group_margins);
 
     /* cursor distance group */
     _dist_groupBox = new QGroupBox(_widget);
-    _dist_groupBox->setMinimumWidth(300);
     _dist_add_btn = new XToolButton(_widget);   
 
+    // Header row of a list: add button, then the column names (muted).
     _dist_layout = new QGridLayout(_widget);
-    _dist_layout->setVerticalSpacing(5);
-    _dist_layout->addWidget(_dist_add_btn, 0, 0);
-    _dist_layout->addWidget(new QLabel(_widget), 0, 1, 1, 3);
+    _dist_layout->setVerticalSpacing(6);
+    QHBoxLayout *dist_head = new QHBoxLayout();
+    dist_head->setSpacing(12);
+    dist_head->addWidget(_dist_add_btn);
     _add_dec_label = new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TIME_SAMPLES), "Time/Samples"), _widget);
-    _dist_layout->addWidget(_add_dec_label, 0, 4);
-    _dist_layout->addWidget(new QLabel(_widget), 0, 5, 1, 2);
-    _dist_layout->setColumnStretch(1, 50);
-    _dist_layout->setColumnStretch(6, 100);
+    _add_dec_label->setObjectName("hint");
+    dist_head->addWidget(_add_dec_label);
+    dist_head->addStretch(1);
+    _dist_layout->addLayout(dist_head, 0, 0, 1, 7);
     _dist_groupBox->setLayout(_dist_layout);
-    _dist_layout->setContentsMargins(5, 15, 5, 5);
+    _dist_layout->setContentsMargins(group_margins);
 
     /* cursor edges group */
     _edge_groupBox = new QGroupBox(_widget);
-    _edge_groupBox->setMinimumWidth(300);
     _edge_add_btn = new XToolButton(_widget);
 
     _channel_label = new QLabel(_widget);
+    _channel_label->setObjectName("hint");
     _edge_label = new QLabel(_widget);
+    _edge_label->setObjectName("hint");
     _edge_layout = new QGridLayout(_widget);
-    _edge_layout->setVerticalSpacing(5);
-    _edge_layout->addWidget(_edge_add_btn, 0, 0);
-    _edge_layout->addWidget(new QLabel(_widget), 0, 1, 1, 4);
-    _edge_layout->addWidget(_channel_label, 0, 5);
-    _edge_layout->addWidget(_edge_label, 0, 6);
-    _edge_layout->setColumnStretch(1, 50);
+    _edge_layout->setVerticalSpacing(6);
+    QHBoxLayout *edge_head = new QHBoxLayout();
+    edge_head->setSpacing(12);
+    edge_head->addWidget(_edge_add_btn);
+    edge_head->addWidget(_channel_label);
+    edge_head->addWidget(_edge_label);
+    edge_head->addStretch(1);
+    _edge_layout->addLayout(edge_head, 0, 0, 1, 7);
     _edge_groupBox->setLayout(_edge_layout);
-    _edge_layout->setContentsMargins(5, 15, 5, 5);
+    _edge_layout->setContentsMargins(group_margins);
 
     /* cursors group */
     _time_label = new QLabel(_widget);
+    _time_label->setObjectName("hint");
     _cursor_groupBox = new QGroupBox(_widget);
     _cursor_layout = new QGridLayout(_widget);
+    _cursor_layout->setVerticalSpacing(6);
+    _cursor_layout->setHorizontalSpacing(6);
     _cursor_layout->addWidget(_time_label, 0, 2);
-    _cursor_layout->addWidget(new QLabel(_widget), 0, 3);
     _cursor_layout->setColumnStretch(3, 1);
-    _cursor_layout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     _cursor_groupBox->setLayout(_cursor_layout);
-    _cursor_layout->setContentsMargins(5, 15, 5, 5);
+    _cursor_layout->setContentsMargins(group_margins);
 
     QVBoxLayout *layout = new QVBoxLayout(_widget);
+    layout->setSpacing(12);
     layout->addWidget(_mouse_groupBox);
     layout->addWidget(_dist_groupBox);
     layout->addWidget(_edge_groupBox);
@@ -146,7 +156,7 @@ MeasureDock::MeasureDock(QWidget *parent, View &view, SigSession *session) :
     _widget->setLayout(layout);
 
     this->setWidget(_widget);
-    _widget->setGeometry(0, 0, sizeHint().width(), 2000);
+    this->setWidgetResizable(true);
     _widget->setObjectName("measureWidget");
 
     add_dist_measure();
@@ -166,8 +176,8 @@ MeasureDock::~MeasureDock()
 
 void MeasureDock::retranslateUi()
 {
-    _mouse_groupBox->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_MOUSE_MEASUREMENT), "Mouse measurement"));
-    _fen_checkBox->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_ENABLE_FLOATING_MEASUREMENT), "Enable floating measurement"));
+    _mouse_groupBox->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_MOUSE_MEASUREMENT), "Mouse Measurement"));
+    _fen_checkBox->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_ENABLE_FLOATING_MEASUREMENT), "Enable Floating Measurement"));
     _dist_groupBox->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CURSOR_DISTANCE), "Cursor Distance"));
     _edge_groupBox->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_EDGES), "Edges"));
     _cursor_groupBox->setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CURSORS), "Cursors"));
@@ -259,7 +269,7 @@ void MeasureDock::build_dist_pannel()
     _dist_pannel->setLayout(lay);
     lay->setColumnStretch(1, 50);
     lay->setColumnStretch(6, 100);
-    lay->setVerticalSpacing(5);
+    lay->setVerticalSpacing(6);
     lay->setContentsMargins(0,0,0,0);
     
     int dex = 0;
@@ -288,6 +298,7 @@ void MeasureDock::build_dist_pannel()
         //tr
         QPushButton *e_btn = new QPushButton("", row_widget);
         QLabel *r_label = new QLabel(row_widget);
+        r_label->setObjectName("measure_result");
         //tr
         QLabel *g_label = new QLabel("-", row_widget);
         g_label->setContentsMargins(0,0,0,0);
@@ -390,7 +401,7 @@ void MeasureDock::build_edge_pannel()
     _edge_pannel->setLayout(lay);
     lay->setColumnStretch(1, 50);
     lay->setColumnStretch(6, 100);
-    lay->setVerticalSpacing(5);
+    lay->setVerticalSpacing(6);
     lay->setContentsMargins(0,0,0,0);
   
     int dex = 0;
@@ -419,6 +430,7 @@ void MeasureDock::build_edge_pannel()
         //tr
         QPushButton *e_btn = new QPushButton(" ", row_widget);
         QLabel *r_label = new QLabel(row_widget);
+        r_label->setObjectName("measure_result");
         //tr
         QLabel *g_label = new QLabel("-", row_widget);
         g_label->setContentsMargins(0,0,0,0);
@@ -426,7 +438,6 @@ void MeasureDock::build_edge_pannel()
         QLabel *a_label = new QLabel("@", row_widget);
         a_label->setContentsMargins(0,0,0,0);
         QComboBox *ch_cmb = create_probe_selector(row_widget);
-        ch_cmb->setFixedWidth(50);
 
         if (o.channelIndex < ch_cmb->count()){
             ch_cmb->setCurrentIndex(o.channelIndex);
@@ -881,7 +892,8 @@ void MeasureDock::build_cursor_pannel()
 
         QString cur_pos = _view.get_cm_time(cursor_dex) + "/" 
                     + QString::number(_view.get_cursor_samples(cursor_dex));
-        QLabel *curpos_label = new QLabel(cur_pos, _widget); 
+        QLabel *curpos_label = new QLabel(cur_pos, _widget);
+        curpos_label->setObjectName("measure_result");
 
         _cursor_layout->addWidget(del_btn, 1+index, 0);
         _cursor_layout->addWidget(cursor_pushButton, 1 + index, 1);
@@ -952,38 +964,17 @@ void MeasureDock::adjust_form_size(QWidget *wid)
 {
     assert(wid);
  
-    QGroupBox *mainGroup = _dist_groupBox;
 
-    QString str = "+12345678999ms/12345678999";
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
     QFontMetrics fm(font); 
-    int max_label_width = fm.horizontalAdvance(str) + 100;
 
-    auto labels = wid->findChildren<QLabel*>();
-    for(auto o : labels)
-    { 
-        QRect rc = fm.boundingRect(o->text());
-        QSize size(rc.width() + 15, rc.height()); 
-        o->setFixedSize(size);
-    }
-
+    // Mouse measurement values: same width, so the two columns stay put.
     int mouse_info_label_width = fm.horizontalAdvance("############");
-    _width_label->setFixedWidth(mouse_info_label_width);
-    _period_label->setFixedWidth(mouse_info_label_width);
-    _freq_label->setFixedWidth(mouse_info_label_width);
-    _duty_label->setFixedWidth(mouse_info_label_width);
-   
-    auto groups = wid->findChildren<QGroupBox*>();
-    for(auto o : groups)
-    { 
-        o->setFixedWidth(max_label_width + 10);
-    }
-
-    QWidget *pannel = dynamic_cast<QWidget*>(mainGroup->parent());
-    if (pannel != NULL){ 
-        pannel->setFixedWidth(max_label_width + 20);
-    }
+    _width_label->setMinimumWidth(mouse_info_label_width);
+    _period_label->setMinimumWidth(mouse_info_label_width);
+    _freq_label->setMinimumWidth(mouse_info_label_width);
+    _duty_label->setMinimumWidth(mouse_info_label_width);
 }
 
 row_list_item* MeasureDock::get_mode_rows()

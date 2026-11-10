@@ -20,6 +20,9 @@
 #include "panelcard.h"
 
 #include <QDockWidget>
+#include <QEvent>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QLabel>
 #include <QVBoxLayout>
 
@@ -48,9 +51,35 @@ PanelCard::PanelCard(QDockWidget *dock, QWidget *content)
     lay->addWidget(_header);
     lay->addWidget(content, 1);
 
+    _scroll = qobject_cast<QScrollArea*>(content);
+    if (_scroll){
+        _scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        if (_scroll->widget())
+            _scroll->widget()->installEventFilter(this);
+        update_min_width();
+    }
+
     update_title(dock->windowTitle());
     connect(dock, &QDockWidget::windowTitleChanged, this,
             [this](const QString &title) { update_title(title); });
+}
+
+bool PanelCard::eventFilter(QObject *obj, QEvent *event)
+{
+    if (_scroll && obj == _scroll->widget() && event->type() == QEvent::LayoutRequest)
+        update_min_width();
+    return QFrame::eventFilter(obj, event);
+}
+
+void PanelCard::update_min_width()
+{
+    QWidget *w = _scroll->widget();
+    if (w == NULL)
+        return;
+    const int wid = w->minimumSizeHint().width()
+                  + _scroll->verticalScrollBar()->sizeHint().width()
+                  + 2 * _scroll->frameWidth();
+    _scroll->setMinimumWidth(wid);
 }
 
 void PanelCard::update_title(const QString &title)

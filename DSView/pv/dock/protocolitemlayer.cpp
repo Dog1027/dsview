@@ -22,6 +22,7 @@
 #include "protocolitemlayer.h"
 #include "../dsvdef.h"
 #include <assert.h> 
+#include <QStyle>
 #include "../config/appconfig.h"
  
 namespace pv {
@@ -103,10 +104,13 @@ void ProtocolItemLayer::on_format_select_changed(int index){
  void ProtocolItemLayer::SetProgress(int progress, QString text){
       QString str = QString::number(progress) + "%" + text;
 
-       if (progress == 100)
-            _progress_label->setStyleSheet("color:green;");
-        else
-            _progress_label->setStyleSheet("color:red;");
+        // Muted while decoding, normal text when done (colours from the theme).
+        const char *name = progress == 100 ? "" : "hint";
+        if (_progress_label->objectName() != name){
+            _progress_label->setObjectName(name);
+            _progress_label->style()->unpolish(_progress_label);
+            _progress_label->style()->polish(_progress_label);
+        }
 
         if (progress >= 0)
             _progress_label->setText(str);

@@ -24,6 +24,7 @@
 
 class QDockWidget;
 class QLabel;
+class QScrollArea;
 
 namespace pv {
 namespace ui {
@@ -33,6 +34,9 @@ namespace ui {
  * a header with the dock's title and the panel content. The dock's own
  * title bar is hidden; the header follows the dock's windowTitle, so
  * retranslating the dock title keeps working. Look: "Cards" in theme.qss.
+ *
+ * A scroll area as content never scrolls sideways: the card is kept at
+ * least as wide as the content's minimum width (STYLE_GUIDE, side panels).
  */
 class PanelCard : public QFrame
 {
@@ -40,12 +44,17 @@ public:
     // Puts the content into a new card and makes the card the dock's widget.
     static PanelCard* wrap(QDockWidget *dock, QWidget *content);
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 private:
     PanelCard(QDockWidget *dock, QWidget *content);
     void update_title(const QString &title);
+    void update_min_width();
 
 private:
     QLabel *_header;
+    QScrollArea *_scroll;
 };
 
 } // namespace ui

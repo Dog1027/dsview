@@ -389,11 +389,11 @@
     },
     {
         "id": "IDS_DLG_MOUSE_MEASUREMENT",
-        "text": "Mouse measurement"
+        "text": "Mouse Measurement"
     },
     {
         "id": "IDS_DLG_ENABLE_FLOATING_MEASUREMENT",
-        "text": "Enable floating measurement"
+        "text": "Enable Floating Measurement"
     },
     {
         "id": "IDS_DLG_CURSOR_DISTANCE",

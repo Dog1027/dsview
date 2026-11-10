@@ -128,42 +128,59 @@ DsoTriggerDock::DsoTriggerDock(QWidget *parent, SigSession *session) :
     _type_group->setId(_rising_radioButton, DSO_TRIGGER_RISING);
     _type_group->setId(_falling_radioButton, DSO_TRIGGER_FALLING);
 
+    // Sections (position, sources, types, hold off, sensitivity), 12 px
+    // apart; rows inside a section 6 px apart (STYLE_GUIDE, side panels).
+    _tSource_label->setObjectName("heading");
+    _tType_label->setObjectName("heading");
+
+    auto section = [](QVBoxLayout *parent_lay) {
+        QGridLayout *g = new QGridLayout();
+        g->setVerticalSpacing(6);
+        g->setHorizontalSpacing(6);
+        parent_lay->addLayout(g);
+        return g;
+    };
+
     QVBoxLayout *layout = new QVBoxLayout(_widget);
-    QGridLayout *gLayout = new QGridLayout();
-    gLayout->setVerticalSpacing(5);
-    gLayout->addWidget(_position_label, 0, 0);
-    gLayout->addWidget(_position_spinBox, 0, 1);
+    layout->setSpacing(12);
+
+    QGridLayout *pos_lay = section(layout);
+    pos_lay->addWidget(_position_label, 0, 0);
+    pos_lay->addWidget(_position_spinBox, 0, 1);
     //tr
-    gLayout->addWidget(new QLabel("%", _widget), 0, 2);
-    gLayout->addWidget(_position_slider, 1, 0, 1, 4);
+    pos_lay->addWidget(new QLabel("%", _widget), 0, 2);
+    pos_lay->setColumnStretch(3, 1);
+    pos_lay->addWidget(_position_slider, 1, 0, 1, 4);
 
-    gLayout->addWidget(new QLabel(_widget), 2, 0);
-    gLayout->addWidget(_tSource_label, 3, 0);
-    gLayout->addWidget(_auto_radioButton, 4, 0);
-    gLayout->addWidget(_channel_comboBox, 4, 1, 1, 3);
-    gLayout->addWidget(_ch0_radioButton, 5, 0);
-    gLayout->addWidget(_ch1_radioButton, 5, 1, 1, 3);
-    gLayout->addWidget(_ch0a1_radioButton, 6, 0);
-    gLayout->addWidget(_ch0o1_radioButton, 6, 1, 1, 3);
+    QGridLayout *src_lay = section(layout);
+    src_lay->addWidget(_tSource_label, 0, 0, 1, 2);
+    src_lay->addWidget(_auto_radioButton, 1, 0);
+    src_lay->addWidget(_channel_comboBox, 1, 1);
+    src_lay->addWidget(_ch0_radioButton, 2, 0);
+    src_lay->addWidget(_ch1_radioButton, 2, 1);
+    src_lay->addWidget(_ch0a1_radioButton, 3, 0);
+    src_lay->addWidget(_ch0o1_radioButton, 3, 1);
+    src_lay->setColumnStretch(0, 1);
+    src_lay->setColumnStretch(1, 1);
 
-    gLayout->addWidget(new QLabel(_widget), 7, 0);
-    gLayout->addWidget(_tType_label, 8, 0);
-    gLayout->addWidget(_rising_radioButton, 9, 0);
-    gLayout->addWidget(_falling_radioButton, 10, 0);
+    QGridLayout *type_lay = section(layout);
+    type_lay->addWidget(_tType_label, 0, 0, 1, 2);
+    type_lay->addWidget(_rising_radioButton, 1, 0);
+    type_lay->addWidget(_falling_radioButton, 1, 1);
+    type_lay->setColumnStretch(0, 1);
+    type_lay->setColumnStretch(1, 1);
 
-    gLayout->addWidget(new QLabel(_widget), 11, 0);
-    gLayout->addWidget(_holdoff_label, 12, 0);
-    gLayout->addWidget(_holdoff_spinBox, 12, 1);
-    gLayout->addWidget(_holdoff_comboBox, 12, 2);
-    gLayout->addWidget(_holdoff_slider, 13, 0, 1, 4);
+    QGridLayout *hold_lay = section(layout);
+    hold_lay->addWidget(_holdoff_label, 0, 0);
+    hold_lay->addWidget(_holdoff_spinBox, 0, 1);
+    hold_lay->addWidget(_holdoff_comboBox, 0, 2);
+    hold_lay->setColumnStretch(3, 1);
+    hold_lay->addWidget(_holdoff_slider, 1, 0, 1, 4);
 
-    gLayout->addWidget(new QLabel(_widget), 14, 0);
-    gLayout->addWidget(_margin_label, 15, 0);
-    gLayout->addWidget(_margin_slider, 16, 0, 1, 4);
+    QGridLayout *margin_lay = section(layout);
+    margin_lay->addWidget(_margin_label, 0, 0);
+    margin_lay->addWidget(_margin_slider, 1, 0);
 
-    gLayout->setColumnStretch(4, 1);
-
-    layout->addLayout(gLayout);
     layout->addStretch(1);
     _widget->setLayout(layout);
 
@@ -186,6 +203,15 @@ void DsoTriggerDock::retranslateUi()
     _margin_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_NOISE_SENSITIVITY), "Noise Sensitivity: "));
     _tSource_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TRIGGER_SOURCES), "Trigger Sources: "));
     _tType_label->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TRIGGER_TYPES), "Trigger Types: "));
+    // No trailing ':' (the strings are shared with other places).
+    for (QLabel *o : {_position_label, _holdoff_label, _margin_label,
+                      _tSource_label, _tType_label}){
+        QString t = o->text().trimmed();
+        if (t.endsWith(':') || t.endsWith(QChar(0xFF1A)))
+            t.chop(1);
+        o->setText(t);
+    }
+
     _rising_radioButton->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_RISING_EDGE), "Rising Edge"));
     _falling_radioButton->setText(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FALLING_EDGE), "Falling Edge"));
 

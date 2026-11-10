@@ -112,7 +112,6 @@ ProtocolDock::ProtocolDock(QWidget *parent, view::View &view, SigSession *sessio
 
     //-----------------------------top panel
     QWidget *top_panel = new QWidget();
-    top_panel->setMinimumHeight(70);
     _top_panel = top_panel;
     QWidget* bot_panel = new QWidget();
 
@@ -135,7 +134,7 @@ ProtocolDock::ProtocolDock(QWidget *parent, view::View &view, SigSession *sessio
     _top_layout = new QVBoxLayout();
     _top_layout->addLayout(pro_search_lay);
     _top_layout->addStretch(1);
-    _top_layout->setSpacing(5);
+    _top_layout->setSpacing(6);
     top_panel->setLayout(_top_layout); 
  
     //-----------------------------bottom panel
@@ -197,6 +196,9 @@ ProtocolDock::ProtocolDock(QWidget *parent, view::View &view, SigSession *sessio
     split_widget->setOrientation(Qt::Vertical);
     split_widget->setCollapsible(0, false);
     split_widget->setCollapsible(1, false);
+    // The decoder list keeps its natural height; the results get the rest.
+    split_widget->setStretchFactor(0, 0);
+    split_widget->setStretchFactor(1, 1);
 
     this->setWidgetResizable(true);
     this->setWidget(split_widget);
@@ -1080,32 +1082,14 @@ void ProtocolDock::UpdateFont()
     _table_view->horizontalHeader()->setFont(font);
     _table_view->verticalHeader()->setFont(font);
 
-    
-    _table_view->setObjectName("DecodedDataView");
-    QString style = "#DecodedDataView QHeaderView{font-size: %1pt}";
-    style = style.arg(AppConfig::Instance().appOptions.fontSize);
-    _table_view->setStyleSheet(style);
-
     adjustPannelSize(); 
  }
 
  void ProtocolDock::adjustPannelSize()
  {
-    QString str = "DECODER";
-    QFont font = this->font();
-    font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
-    QFontMetrics fm(font);
-    QRect rc = fm.boundingRect(str); 
-
-    int lineHeight = rc.height() + 15;
-    _pro_keyword_edit->setFixedHeight(rc.height() + 5);
-    int pannelHeight = lineHeight * _protocol_lay_items.size() + _pro_keyword_edit->height();
-
-    if (pannelHeight < 100){
-        pannelHeight = 100;
-    }
-
-    _top_panel->setMinimumHeight(pannelHeight);
+    // The decoder list sizes itself from its layout (one row per decoder);
+    // nothing to fix here any more. Kept as the hook for callers.
+    _top_panel->updateGeometry();
  }
 
 } // namespace dock

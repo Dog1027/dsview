@@ -151,8 +151,12 @@ then the first line is shown as a heading and the detail muted. Yes / OK
 is the default.
 
 **Side panels.** A `panel_card` with a header label, then the content
-with the side panel row spacing (6). Content follows the panel width
-(`setWidgetResizable(true)`); a panel never scrolls sideways.
+with the side panel row spacing (6) and 12 between sections. Content
+follows the panel width (`setWidgetResizable(true)`); a panel never
+scrolls sideways: `PanelCard` turns the horizontal scroll bar off and
+keeps the card as wide as the content's minimum width. Section titles
+inside a panel: `QLabel#heading` or a `QGroupBox` title, no trailing
+colon. Column names above a list: `QLabel#hint`.
 
 **Icon-only buttons.** `QToolButton`, tooltip = the button's text.
 Icons are 24 px in the toolbar and activity bar, 16 px inside panels
