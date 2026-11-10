@@ -145,6 +145,19 @@ void DSMessageBox::on_button(QAbstractButton *btn)
 
 int DSMessageBox::exec()
 {
+    prepare();
+
+    if (_titlebar != NULL){
+        _titlebar->update_font();
+    }
+
+    PopupDlgList::AddDlgTolist(this);
+
+    return QDialog::exec();
+}
+
+void DSMessageBox::prepare()
+{
     QFont font = this->font();
     font.setPointSizeF(AppConfig::Instance().appOptions.fontSize);
     ui::set_form_font(this, font);
@@ -222,14 +235,6 @@ int DSMessageBox::exec()
         def->setDefault(true);
         QTimer::singleShot(0, def, [def]() { def->setFocus(); });
     }
-
-    if (_titlebar != NULL){
-        _titlebar->update_font();
-    }
-
-    PopupDlgList::AddDlgTolist(this);
-
-    return QDialog::exec();
 }
 
 } // namespace dialogs

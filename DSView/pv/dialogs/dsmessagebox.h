@@ -46,6 +46,10 @@ public:
     QMessageBox *mBox(); 
 
     int exec();
+
+    // Fonts, layout and default button as exec() shows them; for showing
+    // the box without exec() (UI gallery).
+    void prepare();
     
     inline int IsYes(){return _bClickYes;}
 

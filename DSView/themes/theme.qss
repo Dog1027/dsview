@@ -1861,6 +1861,7 @@ QPushButton#inline_search_icon:disabled
 /* ================================================================
  * Trigger panel
  * ================================================================ */
+QLabel#hint,
 QLabel#trigger_hint
 {
     color: @text-muted;
@@ -1882,4 +1883,11 @@ QMessageBox QLabel#qt_msgbox_label[heading="true"]
 QMessageBox QLabel#qt_msgbox_informativelabel
 {
     color: @text-muted;
+}
+
+/* UI gallery (DSView --gallery) */
+QWidget#ui_gallery,
+QWidget#ui_gallery_page
+{
+    background-color: @chrome;
 }

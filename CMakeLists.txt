@@ -307,6 +307,7 @@ set(DSView_SOURCES
     DSView/pv/mainframe.cpp
     DSView/pv/widgets/border.cpp
     DSView/pv/dialogs/dsmessagebox.cpp
+    DSView/pv/dialogs/uigallery.cpp
     DSView/pv/dialogs/shadow.cpp
     DSView/pv/dialogs/dsdialog.cpp
     DSView/pv/dialogs/interval.cpp
@@ -413,6 +414,7 @@ set(DSView_HEADERS
     DSView/pv/mainframe.h
     DSView/pv/widgets/border.h
     DSView/pv/dialogs/dsmessagebox.h
+    DSView/pv/dialogs/uigallery.h
     DSView/pv/dialogs/shadow.h
     DSView/pv/dialogs/dsdialog.h
     DSView/pv/dialogs/interval.h

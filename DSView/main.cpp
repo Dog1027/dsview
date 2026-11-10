@@ -30,6 +30,8 @@
 #include <QScreen>
 #include "dsapplication.h"
 #include "mystyle.h" 
+#include <QTimer>
+#include "pv/dialogs/uigallery.h"
 #include "pv/mainframe.h"
 #include "pv/config/appconfig.h"
 #include "config.h"
@@ -55,6 +57,8 @@ void usage()
 		"  -v, -V, --version               Show release version\n"
 		"  -s, --storelog                  Save log to locale file\n"
 		"  -h, -?, --help                  Show help option\n"
+		"  --gallery                       Open the UI gallery (all controls in the current theme)\n"
+		"  --gallery-shot DIR              Save DIR/gallery-dark.png and gallery-light.png, then quit\n"
 		"\n", DS_BIN_NAME, DS_DESCRIPTION);
 }
 
@@ -65,6 +69,8 @@ int main(int argc, char *argv[])
 	const char *open_file = NULL;
 	int logLevel = -1;
 	bool bStoreLog = false;
+	bool bGallery = false;
+	QString galleryShotDir;
 
 	//----------------------rebuild command param
 #ifdef _WIN32
@@ -104,6 +110,8 @@ int main(int argc, char *argv[])
 			{"version", no_argument, 0, 'v'},
 			{"storelog", no_argument, 0, 's'},
 			{"help", no_argument, 0, 'h'},
+			{"gallery", no_argument, 0, 'g'},
+			{"gallery-shot", required_argument, 0, 'G'},
 			{0, 0, 0, 0}
 		};
 
@@ -120,6 +128,14 @@ int main(int argc, char *argv[])
 
 		case 's': // the store log flag
 			bStoreLog = true;
+			break;
+
+		case 'g': // open the UI gallery
+			bGallery = true;
+			break;
+
+		case 'G': // save screenshots of the UI gallery and quit
+			galleryShotDir = optarg;
 			break;
 
 		case 'V': // version
@@ -257,6 +273,13 @@ bool bHighScale = true;
 		control->Start();
 		w.ShowFormInit();  
 		w.ShowHelpDocAsync();  //to show the dailog for open help document
+
+		if (!galleryShotDir.isEmpty()){
+			QTimer::singleShot(1500, [galleryShotDir]() { pv::dialogs::UiGallery::Shoot(galleryShotDir); });
+		}
+		else if (bGallery){
+			QTimer::singleShot(500, []() { pv::dialogs::UiGallery::Open(); });
+		}
 		
 		ret = a.exec(); //Run the application
 		control->Stop();

@@ -206,3 +206,19 @@ QColor Theme::color(const QString &name, const QColor &fallback) const
 
 } // namespace ui
 } // namespace pv
+
+namespace pv {
+namespace ui {
+
+QStringList Theme::color_names() const
+{
+    QStringList names;
+    for (auto it = _vars.begin(); it != _vars.end(); ++it){
+        if (QColor(it.value()).isValid())
+            names.append(it.key());
+    }
+    return names;
+}
+
+} // namespace ui
+} // namespace pv

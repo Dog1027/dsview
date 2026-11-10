@@ -24,6 +24,7 @@
 #include <QString>
 #include <QColor>
 #include <QMap>
+#include <QStringList>
 
 class QFileSystemWatcher;
 class QTimer;
@@ -53,6 +54,9 @@ public:
 
     // A palette color, e.g. color("accent"). Valid after build_style_sheet().
     QColor color(const QString &name, const QColor &fallback = QColor()) const;
+
+    // Names of the palette entries that are colors, sorted by name.
+    QStringList color_names() const;
 
     // True when files are loaded from DSVIEW_THEME_DIR (live edit mode).
     bool is_live() const;

@@ -38,3 +38,21 @@ vertical strip at the right edge that switches the side panels), their
 order, grouping and whether they show text is defined in
 `DSView/pv/toolbars/topbarlayout.h`. Their look is the "Main top bar" and
 "Activity bar" sections at the end of `theme.qss`.
+
+UI gallery
+----------
+
+All controls, the message boxes, a dialog, a menu, the palette colors and
+every icon on one page, in the current theme:
+
+```bash
+./build.dir/DSView --gallery                 # open it next to the main window
+./build.dir/DSView --gallery-shot out/       # save out/gallery-dark.png and
+                                             # out/gallery-light.png, then quit
+```
+
+The Dark / Light buttons at the top switch the theme for the preview only
+(closing the gallery restores the app's theme). With `DSVIEW_THEME_DIR`
+the page is rebuilt on every save of a theme file. Compare two
+`--gallery-shot` runs to see what a stylesheet change affected.
+Code: `DSView/pv/dialogs/uigallery.cpp`.
