@@ -145,6 +145,9 @@ private:
     void paintSignals(QPainter& p, QColor fore, QColor back);
     void paintHoverRow(QPainter &p, std::vector<Trace*> &traces);
     void paintMeasureCard(QPainter &p);
+    void paintInfoCard(QPainter &p, const QPoint &at, const QString &title,
+                       const QColor &dot_colour, const QStringList &names,
+                       const QStringList &values);
     void paintProgress(QPainter& p, QColor fore, QColor back);
     void paintMeasure(QPainter &p, QColor fore, QColor back);
     void paintCursors(QPainter &p);

@@ -1,5 +1,13 @@
 [
     {
+        "id": "IDS_DLG_JUMP_TIME",
+        "text": "时间"
+    },
+    {
+        "id": "IDS_DLG_JUMP_SAMPLES",
+        "text": "采样数"
+    },
+    {
         "id": "IDS_DLG_LOG_OPTIONS",
         "text": "日志选项"
     },

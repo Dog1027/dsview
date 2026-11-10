@@ -243,6 +243,10 @@ Waveforms, the ruler, channel rows and cursors are painted in C++.
   `@border`, radius 8) 14 px below right of the pointer, flipped at the
   view edges; title = channel name with its colour dot, names
   `@text-muted` left, values `@text` right (`Viewport::paintMeasureCard`).
+  Every floating box over the waves uses this card
+  (`Viewport::paintInfoCard`): the edge count after a click on a wave
+  (Edges / Rising / Falling, titled with the channel) and the jump
+  between two edges (Time / Samples).
 - Leave room for labels at both ends of the time axis (`View::edge_pad`).
   Code that turns view pixels into sample indexes must cope with the
   negative offset there.

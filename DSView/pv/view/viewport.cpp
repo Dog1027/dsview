@@ -1673,6 +1673,8 @@ void Viewport::measure()
                 }
                 else if (_action_type == LOGIC_EDGE) {
                     if (logicSig->edges(_view.hover_point(), _edge_start, _edge_rising, _edge_falling)) {
+                        _mm_name = logicSig->get_name();
+                        _mm_colour = logicSig->wave_colour(QColor());
                         _cur_preX = _view.index2pixel(_edge_start);
                         _cur_aftX = _view.hover_point().x();
                         _cur_midY = logicSig->get_y() - logicSig->get_totalHeight()/2 - 5;
@@ -1747,23 +1749,11 @@ void Viewport::measure()
 // names muted on the left, values on the right.
 void Viewport::paintMeasureCard(QPainter &p)
 {
-    const ui::Theme &theme = ui::Theme::Instance();
-    const QColor surface = theme.color("surface", QColor(49, 49, 49));
-    const QColor border = theme.color("border", QColor(70, 70, 70));
-    const QColor text = theme.color("text", QColor(204, 204, 204));
-    const QColor muted = theme.color("text-muted", QColor(150, 150, 150));
-
     auto name = [](const QString &s) {
         QString t = s.trimmed();
         if (t.endsWith(':') || t.endsWith(QChar(0xFF1A)))
             t.chop(1);
         return t.trimmed();
-    };
-    const QString names[] = {
-        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_WIDTH), "Width: ")),
-        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PERIOD), "Period: ")),
-        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FREQUENCY), "Frequency: ")),
-        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DUTY_CYCLE), "Duty Cycle: ")),
     };
     // Spans are never negative: no "+" in front.
     auto unsigned_str = [](QString v) {
@@ -1771,38 +1761,63 @@ void Viewport::paintMeasureCard(QPainter &p)
             v.remove(0, 1);
         return v;
     };
-    const QString values[] = { unsigned_str(_mm_width), unsigned_str(_mm_period), _mm_freq, _mm_duty };
+    const QStringList names = {
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_WIDTH), "Width: ")),
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PERIOD), "Period: ")),
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FREQUENCY), "Frequency: ")),
+        name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DUTY_CYCLE), "Duty Cycle: ")),
+    };
+    const QStringList values = { unsigned_str(_mm_width), unsigned_str(_mm_period), _mm_freq, _mm_duty };
+
+    paintInfoCard(p, _view.hover_point(), _mm_name, _mm_colour, names, values);
+}
+
+// A floating card like a menu: @surface, @border, radius 8; an optional
+// title with a colour dot, then rows of muted names (left) and values in
+// the data font (right). Placed 14 px below right of `at`, flipped where
+// it would leave the view.
+void Viewport::paintInfoCard(QPainter &p, const QPoint &at, const QString &title,
+                             const QColor &dot_colour, const QStringList &names,
+                             const QStringList &values)
+{
+    const ui::Theme &theme = ui::Theme::Instance();
+    const QColor surface = theme.color("surface", QColor(49, 49, 49));
+    const QColor border = theme.color("border", QColor(70, 70, 70));
+    const QColor text = theme.color("text", QColor(204, 204, 204));
+    const QColor muted = theme.color("text-muted", QColor(150, 150, 150));
+    const int rows = std::min(names.size(), values.size());
 
     p.save();
     QFont title_font = p.font();
     title_font.setWeight(QFont::DemiBold);
-    const QFontMetrics fm(p.font());
+    QFont body = title_font;
+    body.setWeight(QFont::Normal);
+    const QFont value_font = ::ui::data_font(body);
+    const QFontMetrics fm(body);
+    const QFontMetrics vfm(value_font);
     const QFontMetrics tfm(title_font);
-    const QFontMetrics vfm(::ui::data_font(p.font()));
 
     const int pad_h = 12, pad_v = 8, col_gap = 16, row_gap = 2;
-    const int line_h = fm.height();
+    const int line_h = std::max(fm.height(), vfm.height());
     int name_w = 0, value_w = 0;
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < rows; i++){
         name_w = std::max(name_w, fm.horizontalAdvance(names[i]));
         value_w = std::max(value_w, vfm.horizontalAdvance(values[i]));
     }
     const int dot = 8;
-    const bool has_title = !_mm_name.isEmpty();
+    const bool has_title = !title.isEmpty();
     const int title_h = has_title ? tfm.height() + 4 : 0;
     const int w = pad_h * 2 + std::max(name_w + col_gap + value_w,
-                                       dot + 6 + tfm.horizontalAdvance(_mm_name));
-    const int h = pad_v * 2 + title_h + 4 * line_h + 3 * row_gap;
+                                       has_title ? dot + 6 + tfm.horizontalAdvance(title) : 0);
+    const int h = pad_v * 2 + title_h + rows * line_h + std::max(0, rows - 1) * row_gap;
 
-    // Below right of the pointer; flipped where it would leave the view.
     const int off = 14;
-    const QPoint hp = _view.hover_point();
-    int x = hp.x() + off;
-    int y = hp.y() + off;
+    int x = at.x() + off;
+    int y = at.y() + off;
     if (x + w > _view.get_view_width())
-        x = hp.x() - off - w;
+        x = at.x() - off - w;
     if (y + h > height())
-        y = hp.y() - off - h;
+        y = at.y() - off - h;
     x = std::max(2, x);
     y = std::max(2, y);
 
@@ -1814,28 +1829,25 @@ void Viewport::paintMeasureCard(QPainter &p)
 
     int ty = y + pad_v;
     if (has_title){
-        QColor c = _mm_colour.isValid() ? _mm_colour : text;
+        QColor c = dot_colour.isValid() ? dot_colour : text;
         p.setPen(Qt::NoPen);
         p.setBrush(c);
         p.drawEllipse(QRectF(x + pad_h, ty + (tfm.height() - dot) / 2.0, dot, dot));
         p.setFont(title_font);
         p.setPen(text);
         p.drawText(QRect(x + pad_h + dot + 6, ty, w, tfm.height()),
-                   Qt::AlignLeft | Qt::AlignVCenter, _mm_name);
+                   Qt::AlignLeft | Qt::AlignVCenter, title);
         ty += title_h;
     }
 
-    QFont body = title_font;
-    body.setWeight(QFont::Normal);
-    p.setFont(body);
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < rows; i++){
         const QRect row(x + pad_h, ty, w - 2 * pad_h, line_h);
+        p.setFont(body);
         p.setPen(muted);
         p.drawText(row, Qt::AlignLeft | Qt::AlignVCenter, names[i]);
+        p.setFont(value_font);
         p.setPen(text);
-        p.setFont(::ui::data_font(body));
         p.drawText(row, Qt::AlignRight | Qt::AlignVCenter, values[i]);
-        p.setFont(body);
         ty += line_h + row_gap;
     }
     p.restore();
@@ -2034,35 +2046,24 @@ void Viewport::paintMeasure(QPainter &p, QColor fore, QColor back)
         p.drawLine(QLineF(_cur_aftX, _cur_midY-5, _cur_aftX, _cur_midY+5));
         p.drawLine(QLineF(_cur_preX, _cur_midY, _cur_aftX, _cur_midY));
 
-        int typical_width = p.boundingRect(0, 0, INT_MAX, INT_MAX,
-            Qt::AlignLeft | Qt::AlignTop, _em_edges).width();
-        typical_width = max(typical_width, p.boundingRect(0, 0, INT_MAX, INT_MAX,
-            Qt::AlignLeft | Qt::AlignTop, _em_rising).width());
-        typical_width = max(typical_width, p.boundingRect(0, 0, INT_MAX, INT_MAX,
-            Qt::AlignLeft | Qt::AlignTop, _em_falling).width());
-
-        typical_width = typical_width + 60;
-
-        const double width = _view.get_view_width();
-        const double height = _view.viewport()->height();
-        const double left = _view.hover_point().x();
-        const double top = _view.hover_point().y();
-        const double right = left + typical_width;
-        const double bottom = top + 60;
-        QPointF org_pos = QPointF(right > width ? left - typical_width : left, bottom > height ? top - 80 : top);
-        QRectF measure_rect = QRectF(org_pos.x(), org_pos.y(), (double)typical_width, 60.0);
-        QRectF measure1_rect = QRectF(org_pos.x(), org_pos.y(), (double)typical_width, 20.0);
-        QRectF measure2_rect = QRectF(org_pos.x(), org_pos.y()+20, (double)typical_width, 20.0);
-        QRectF measure3_rect = QRectF(org_pos.x(), org_pos.y()+40, (double)typical_width, 20.0);
-
-        p.setPen(Qt::NoPen);
-        p.setBrush(View::LightBlue);
-        p.drawRect(measure_rect);
-
-        p.setPen(active_color);
-        p.drawText(measure1_rect, Qt::AlignRight | Qt::AlignVCenter, _em_edges);
-        p.drawText(measure2_rect, Qt::AlignRight | Qt::AlignVCenter, _em_rising);
-        p.drawText(measure3_rect, Qt::AlignRight | Qt::AlignVCenter, _em_falling);
+        // Edge count from the click to the pointer: an info card.
+        auto name = [](const QString &s) {
+            QString t = s.trimmed();
+            if (t.endsWith(':') || t.endsWith(QChar(0xFF1A)))
+                t.chop(1);
+            return t.trimmed();
+        };
+        const QStringList names = {
+            name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_Edges_1), "Edges: ")),
+            name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_RISING), "Rising: ")),
+            name(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_FALLING), "Falling: ")),
+        };
+        const QStringList values = {
+            QString::number(_edge_rising + _edge_falling),
+            QString::number(_edge_rising),
+            QString::number(_edge_falling),
+        };
+        paintInfoCard(p, _view.hover_point(), _mm_name, _mm_colour, names, values);
     }
 
     if (_action_type == LOGIC_JUMP) {
@@ -2096,30 +2097,25 @@ void Viewport::paintMeasure(QPainter &p, QColor fore, QColor back)
                 p.drawPoints(aft_points, countof(aft_points));
             }
             int64_t delta = max(_edge_start, _edge_end) - min(_edge_start, _edge_end);
-            QString delta_text = _view.get_index_delta(_edge_start, _edge_end) +
-                                 "/" + QString::number(delta);
-            QFontMetrics fm = this->fontMetrics();
-           
-            const int rectW = fm.boundingRect(delta_text).width() + 60;
-            const int rectH = fm.height() + 10;
-             
-            const int rectY = (height() - _view.hover_point().y() < rectH + 20) ? _view.hover_point().y() - 10 - rectH : _view.hover_point().y() + 20;
-            const int rectX = (width() - _view.hover_point().x() < rectW) ? _view.hover_point().x() - rectW : _view.hover_point().x();
-            QRectF jump_rect = QRectF(rectX, rectY, rectW, rectH);
-
-            p.setPen(Qt::NoPen);
-            p.setBrush(View::LightBlue);
-            p.drawRect(jump_rect);
+            QString span = _view.get_index_delta(_edge_start, _edge_end);
+            if (span.startsWith('+'))
+                span.remove(0, 1);
+            const QStringList names = {
+                L_S(STR_PAGE_DLG, S_ID(IDS_DLG_JUMP_TIME), "Time"),
+                L_S(STR_PAGE_DLG, S_ID(IDS_DLG_JUMP_SAMPLES), "Samples"),
+            };
+            const QStringList values = { span, QString::number(delta) };
 
             p.setPen(active_color);
             p.setBrush(Qt::NoBrush);
-            p.drawText(jump_rect, Qt::AlignCenter | Qt::AlignVCenter, delta_text);
 
             QPainterPath path(QPoint(_cur_preX, _cur_preY));
             QPoint c1((_cur_preX+_cur_aftX)/2, _cur_preY);
             QPoint c2((_cur_preX+_cur_aftX)/2, _cur_aftY);
             path.cubicTo(c1, c2, QPoint(_cur_aftX, _cur_aftY));
             p.drawPath(path);
+
+            paintInfoCard(p, _view.hover_point(), QString(), QColor(), names, values);
         }
     }
 }
