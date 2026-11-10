@@ -82,7 +82,7 @@ void ViewStatus::paintEvent(QPaintEvent *)
         fore.setAlpha(View::ForeAlpha);
         p.setPen(fore);
         p.drawText(this->rect(), Qt::AlignLeft | Qt::AlignVCenter, _rle_depth);
-        p.drawText(this->rect(), Qt::AlignRight | Qt::AlignVCenter, _trig_time);
+        // The capture time is shown in the status bar (ui/appstatusbar.cpp).
 
         p.setPen(Qt::NoPen);
         p.setBrush(View::Blue);

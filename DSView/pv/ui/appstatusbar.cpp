@@ -154,7 +154,12 @@ void AppStatusBar::refresh()
                  + duration((double)samples / rate) + " @ " + si((double)rate, "Hz");
         }
         if (_session->is_triged() && _session->get_trig_time().isValid())
-            trigger = tr("Captured at") + " " + _session->get_trig_time().toString("HH:mm:ss");
+        {
+            // Time only for today's captures, otherwise with the date.
+            QDateTime at = _session->get_trig_time();
+            QString fmt = at.date() == QDate::currentDate() ? "HH:mm:ss" : "yyyy-MM-dd HH:mm:ss";
+            trigger = tr("Captured at") + " " + at.toString(fmt);
+        }
     }
     set_text(_data, data);
     set_text(_trigger, trigger);

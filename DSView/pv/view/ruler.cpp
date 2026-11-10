@@ -23,6 +23,8 @@
 #include "ruler.h"
 #include <assert.h>
 #include <math.h>
+#include <algorithm>
+#include <climits>
 #include <limits.h>
 #include <cmath>
 #include <QMouseEvent>
@@ -44,6 +46,26 @@ using namespace Qt;
 
 namespace pv {
 namespace view {
+
+// A tick label centred on its tick, but kept inside the ruler, so the
+// first ("0s") and last labels are not cut off at the edges. A label that
+// would run into the previous one (lastRight) is left out.
+static void draw_tick_label(QPainter &p, int x, int y, int h, const QString &text,
+                            int rulerWidth, int &lastRight)
+{
+    // Ticks outside the ruler get no label (it would pile up at the edge).
+    if (x < 0 || x > rulerWidth)
+        return;
+
+    const int w = p.fontMetrics().horizontalAdvance(text);
+    int left = x - w / 2;
+    left = std::min(left, rulerWidth - w - 2);
+    left = std::max(left, 10);   // clear of the trigger marker at the left edge
+    if (left < lastRight + 6)
+        return;
+    p.drawText(QRect(left, y, w, h), Qt::AlignLeft | Qt::AlignTop | Qt::TextDontClip, text);
+    lastRight = left + w;
+}
 
 const int Ruler::MinorTickSubdivision = 4;
 const int Ruler::ScaleUnits[3] = {1, 2, 5};
@@ -494,6 +516,7 @@ void Ruler::draw_logic_tick_mark(QPainter &p)
                                                  AlignLeft | AlignTop,
                                                  format_time(minor_tick_period,
                                                              minor_prefix)).width() + MinValueSpacing;
+    int last_label_right = INT_MIN;
     do {
         const double t = t0 + division * minor_tick_period;
         const double major_t = t0 + floor(division / MinPeriodScale) * tick_period;
@@ -503,9 +526,7 @@ void Ruler::draw_logic_tick_mark(QPainter &p)
         if (division % MinPeriodScale == 0)
         {
             // Draw a major tick
-            p.drawText(x, 2 * ValueMargin, 0, text_height,
-                AlignCenter | AlignTop | TextDontClip,
-                format_time(t, prefix));
+            draw_tick_label(p, x, 2 * ValueMargin, text_height, format_time(t, prefix), width(), last_label_right);
             p.drawLine(QPoint(x, major_tick_y1),
                 QPoint(x, tick_y2));
         }
@@ -513,15 +534,11 @@ void Ruler::draw_logic_tick_mark(QPainter &p)
         {
             // Draw a minor tick
             if (minor_tick_period / scale > 2 * typical_width)
-                p.drawText(x, 2 * ValueMargin, 0, text_height,
-                    AlignCenter | AlignTop | TextDontClip,
-                    format_time(t, prefix));
+                draw_tick_label(p, x, 2 * ValueMargin, text_height, format_time(t, prefix), width(), last_label_right);
             //else if ((tick_period / scale > width() / 4) && (minor_tick_period / scale > inc_text_width))
             else if (minor_tick_period / scale > 1.1 * inc_text_width ||
                      tick_period / scale > _view.get_view_width())
-                p.drawText(x, 2 * ValueMargin, 0, minor_tick_y1 + ValueMargin,
-                    AlignCenter | AlignTop | TextDontClip,
-                    format_time(t - major_t, minor_prefix));
+                draw_tick_label(p, x, 2 * ValueMargin, minor_tick_y1 + ValueMargin, format_time(t - major_t, minor_prefix), width(), last_label_right);
             p.drawLine(QPoint(x, minor_tick_y1),
                 QPoint(x, tick_y2));
         }
@@ -621,6 +638,7 @@ void Ruler::draw_osc_tick_mark(QPainter &p)
                                                  AlignLeft | AlignTop,
                                                  format_time(minor_tick_period,
                                                              minor_prefix)).width() + MinValueSpacing;
+    int last_label_right = INT_MIN;
     do {
         const double t = t0 + division * minor_tick_period;
         const double major_t = t0 + floor(division / MinPeriodScale) * tick_period;
@@ -630,24 +648,18 @@ void Ruler::draw_osc_tick_mark(QPainter &p)
         if (division % MinPeriodScale == 0)
         {
             // Draw a major tick
-            p.drawText(x, 2 * ValueMargin, 0, text_height,
-                AlignCenter | AlignTop | TextDontClip,
-                format_time(t, prefix));
+            draw_tick_label(p, x, 2 * ValueMargin, text_height, format_time(t, prefix), width(), last_label_right);
             p.drawLine(QPoint(x, major_tick_y1), QPoint(x, tick_y2));
         }
         else
         {
             // Draw a minor tick
             if (minor_tick_period / scale > 2 * typical_width)
-                p.drawText(x, 2 * ValueMargin, 0, text_height,
-                    AlignCenter | AlignTop | TextDontClip,
-                    format_time(t, prefix));
+                draw_tick_label(p, x, 2 * ValueMargin, text_height, format_time(t, prefix), width(), last_label_right);
             //else if ((tick_period / scale > width() / 4) && (minor_tick_period / scale > inc_text_width))
             else if (minor_tick_period / scale > 1.1 * inc_text_width ||
                      tick_period / scale > _view.get_view_width())
-                p.drawText(x, 2 * ValueMargin, 0, minor_tick_y1 + ValueMargin,
-                    AlignCenter | AlignTop | TextDontClip,
-                    format_time(t - major_t, minor_prefix));
+                draw_tick_label(p, x, 2 * ValueMargin, minor_tick_y1 + ValueMargin, format_time(t - major_t, minor_prefix), width(), last_label_right);
             p.drawLine(QPoint(x, minor_tick_y1), QPoint(x, tick_y2));
         }
 
