@@ -195,17 +195,37 @@ void Trace::paint_label(QPainter &p, int right, const QPoint pt, QColor fore)
     const QRectF name_rect  = get_rect("name",  y, right);
     const QRectF label_rect = get_rect("label", get_zero_vpos(), right);
 
+    p.save();
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    // Channel colour: logic channels use the same colour as their number tag.
+    QColor channelColour = _colour;
+    if (!channelColour.isValid() && !_index_list.empty())
+        channelColour = PROBE_COLORS[*_index_list.begin() % countof(PROBE_COLORS)];
+    if (!channelColour.isValid())
+        channelColour = fore;
+
     // Paint the ColorButton
     QColor foreBack = fore;
     foreBack.setAlpha(View::BackAlpha);
     p.setPen(Qt::transparent);
-    p.setBrush(enabled() ? (_colour.isValid() ? _colour : fore) : foreBack);
-    p.drawRect(color_rect);
-    
+
     if (_type == SR_CHANNEL_DSO ||
         _type == SR_CHANNEL_MATH) {
+        p.setBrush(enabled() ? (_colour.isValid() ? _colour : fore) : foreBack);
+        p.drawRoundedRect(color_rect, 3, 3);
         p.setPen(enabled() ?  Qt::white: foreBack);
         p.drawText(color_rect, Qt::AlignCenter | Qt::AlignVCenter, _name);
+    }
+    else {
+        // A slim bar; the whole color_rect stays the click area.
+        QColor bar = channelColour;
+        if (!enabled())
+            bar.setAlpha(View::BackAlpha);
+        p.setBrush(bar);
+        QRectF slim(color_rect.left() + 2, color_rect.top() + 3,
+                    4, color_rect.height() - 6);
+        p.drawRoundedRect(slim, 2, 2);
     }
 
     if (_type != SR_CHANNEL_DSO) {
@@ -227,18 +247,18 @@ void Trace::paint_label(QPainter &p, int right, const QPoint pt, QColor fore)
             label_rect.bottomLeft()
         };
 
+        // The number tag: a rounded square in the channel colour.
+        (void)points;
         p.setPen(Qt::transparent);
         if (_type == SR_CHANNEL_DSO ||
             _type == SR_CHANNEL_FFT ||
             _type == SR_CHANNEL_ANALOG ||
             _type == SR_CHANNEL_MATH) {
             p.setBrush(_colour);
-            p.drawPolygon(points, countof(points));
         } else {
-            QColor color = PROBE_COLORS[*_index_list.begin() % countof(PROBE_COLORS)];
-            p.setBrush(color);
-            p.drawPolygon(points, countof(points));
+            p.setBrush(PROBE_COLORS[*_index_list.begin() % countof(PROBE_COLORS)]);
         }
+        p.drawRoundedRect(label_rect.adjusted(0, 1, 0, -1), 4, 4);
 
         p.setPen(Qt::white);
         const QPointF arrow_points[] = {
@@ -280,6 +300,8 @@ void Trace::paint_label(QPainter &p, int right, const QPoint pt, QColor fore)
         else
             p.drawText(label_rect, Qt::AlignCenter | Qt::AlignVCenter, QString::number(_index_list.front()));
     }
+
+    p.restore();
 }
 
 void Trace::paint_type_options(QPainter &p, int right, const QPoint pt, QColor fore)

@@ -23,6 +23,7 @@
 #include <libsigrokdecode.h>
 #include <math.h>
 #include "logicsignal.h"
+#include "../ui/theme.h"
 #include "view.h" 
 #include "../data/logicsnapshot.h"
 #include "view.h"
@@ -215,77 +216,75 @@ void LogicSignal::paint_caps(QPainter &p, QLineF *const lines,
 
 void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QColor fore)
 {
-    int y = get_y();
-    const QRectF posTrig_rect  = get_rect(POSTRIG,  y, right);
-    const QRectF higTrig_rect  = get_rect(HIGTRIG,  y, right);
-    const QRectF negTrig_rect  = get_rect(NEGTRIG,  y, right);
-    const QRectF lowTrig_rect  = get_rect(LOWTRIG,  y, right);
-    const QRectF edgeTrig_rect = get_rect(EDGTRIG, y, right);
+    const int y = get_y();
 
-    p.setPen(Qt::NoPen);
+    // Trigger buttons: rising, high, falling, low, any edge. Drawn faint
+    // until the mouse is on this row; the selected one is filled.
+    const LogicSetRegions types[] = {POSTRIG, HIGTRIG, NEGTRIG, LOWTRIG, EDGTRIG};
 
-    if (true)
-    {   
-        QColor color = View::Blue;
+    const bool rowHover = pt.x() >= 0
+        && pt.y() >= y - SquareWidth / 2 && pt.y() <= y + SquareWidth / 2;
 
-        if (session->is_loop_mode()){
-            color = QColor(0x70, 0x70, 0x70,  255);
+    QColor accent = ui::Theme::Instance().color("accent", View::Blue);
+    if (session->is_loop_mode())
+        accent = QColor(0x70, 0x70, 0x70);
+
+    p.save();
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    for (LogicSetRegions type : types)
+    {
+        const QRectF r = get_rect(type, y, right).adjusted(1, 1, -1, -1);
+        const bool on = (_trig == type);
+        const bool hover = r.contains(pt);
+
+        // background
+        p.setPen(Qt::NoPen);
+        if (on){
+            p.setBrush(hover ? accent.lighter(115) : accent);
+            p.drawRoundedRect(r, 4, 4);
+        }
+        else if (hover){
+            QColor h = fore;
+            h.setAlpha(45);
+            p.setBrush(h);
+            p.drawRoundedRect(r, 4, 4);
         }
 
-        p.setBrush(posTrig_rect.contains(pt) ? color.lighter() :
-                (_trig == POSTRIG) ? color : Qt::transparent);
-        p.drawRect(posTrig_rect);
-        p.setBrush(higTrig_rect.contains(pt) ? color.lighter() :
-                (_trig == HIGTRIG) ? color : Qt::transparent);
-        p.drawRect(higTrig_rect);
-        p.setBrush(negTrig_rect.contains(pt) ? color.lighter() :
-                (_trig == NEGTRIG) ? color : Qt::transparent);
-        p.drawRect(negTrig_rect);
-        p.setBrush(lowTrig_rect.contains(pt) ? color.lighter() :
-                (_trig == LOWTRIG) ? color : Qt::transparent);
-        p.drawRect(lowTrig_rect);
-        p.setBrush(edgeTrig_rect.contains(pt) ? color.lighter() :
-                (_trig == EDGTRIG) ? color : Qt::transparent);
-        p.drawRect(edgeTrig_rect);
-    }   
+        // glyph
+        QColor ink = on ? QColor(Qt::white) : fore;
+        if (!on && !hover && !rowHover)
+            ink.setAlpha(70);
+        p.setPen(QPen(ink, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        p.setBrush(Qt::NoBrush);
 
-    p.setPen(QPen(fore, 1, Qt::DashLine));
-    p.setBrush(Qt::transparent);
-    p.drawLine(posTrig_rect.left(), posTrig_rect.bottom(),
-               edgeTrig_rect.right(), edgeTrig_rect.bottom());
+        const QRectF g = r.adjusted(4, 5, -4, -5);
+        const qreal l = g.left(), rt = g.right(), tp = g.top(), bt = g.bottom();
+        const qreal cx = g.center().x();
 
-    p.setPen(QPen(fore, 2, Qt::SolidLine));
-    p.setBrush(Qt::transparent);
-    p.drawLine(posTrig_rect.left() + 5, posTrig_rect.bottom() - 5,
-               posTrig_rect.center().x(), posTrig_rect.bottom() - 5);
-    p.drawLine(posTrig_rect.center().x(), posTrig_rect.bottom() - 5,
-               posTrig_rect.center().x(), posTrig_rect.top() + 5);
-    p.drawLine(posTrig_rect.center().x(), posTrig_rect.top() + 5,
-               posTrig_rect.right() - 5, posTrig_rect.top() + 5);
+        if (type == POSTRIG){
+            const QPointF pts[] = {{l, bt}, {cx, bt}, {cx, tp}, {rt, tp}};
+            p.drawPolyline(pts, 4);
+        }
+        else if (type == HIGTRIG){
+            p.drawLine(QPointF(l, tp), QPointF(rt, tp));
+        }
+        else if (type == NEGTRIG){
+            const QPointF pts[] = {{l, tp}, {cx, tp}, {cx, bt}, {rt, bt}};
+            p.drawPolyline(pts, 4);
+        }
+        else if (type == LOWTRIG){
+            p.drawLine(QPointF(l, bt), QPointF(rt, bt));
+        }
+        else { // EDGTRIG: both edges
+            const QPointF up[] = {{l, bt}, {cx - 1.5, bt}, {cx + 1.5, tp}, {rt, tp}};
+            const QPointF down[] = {{l, tp}, {cx - 1.5, tp}, {cx + 1.5, bt}, {rt, bt}};
+            p.drawPolyline(up, 4);
+            p.drawPolyline(down, 4);
+        }
+    }
 
-    p.drawLine(higTrig_rect.left() + 5, higTrig_rect.top() + 5,
-               higTrig_rect.right() - 5, higTrig_rect.top() + 5);
-
-    p.drawLine(negTrig_rect.left() + 5, negTrig_rect.top() + 5,
-               negTrig_rect.center().x(), negTrig_rect.top() + 5);
-    p.drawLine(negTrig_rect.center().x(), negTrig_rect.top() + 5,
-               negTrig_rect.center().x(), negTrig_rect.bottom() - 5);
-    p.drawLine(negTrig_rect.center().x(), negTrig_rect.bottom() - 5,
-               negTrig_rect.right() - 5, negTrig_rect.bottom() - 5);
-
-    p.drawLine(lowTrig_rect.left() + 5, lowTrig_rect.bottom() - 5,
-               lowTrig_rect.right() - 5, lowTrig_rect.bottom() - 5);
-
-    p.drawLine(edgeTrig_rect.left() + 5, edgeTrig_rect.top() + 5,
-               edgeTrig_rect.center().x() - 2, edgeTrig_rect.top() + 5);
-    p.drawLine(edgeTrig_rect.center().x() + 2 , edgeTrig_rect.top() + 5,
-               edgeTrig_rect.right() - 5, edgeTrig_rect.top() + 5);
-    p.drawLine(edgeTrig_rect.center().x(), edgeTrig_rect.top() + 7,
-               edgeTrig_rect.center().x(), edgeTrig_rect.bottom() - 7);
-    p.drawLine(edgeTrig_rect.left() + 5, edgeTrig_rect.bottom() - 5,
-               edgeTrig_rect.center().x() - 2, edgeTrig_rect.bottom() - 5);
-    p.drawLine(edgeTrig_rect.center().x() + 2, edgeTrig_rect.bottom() - 5,
-               edgeTrig_rect.right() - 5, edgeTrig_rect.bottom() - 5);
+    p.restore();
 }
 
 bool LogicSignal::measure(const QPointF &p, uint64_t &index0, uint64_t &index1, uint64_t &index2)

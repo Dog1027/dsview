@@ -1177,6 +1177,11 @@ QWidget#TitleBar QLabel
     color: @text-muted;
 }
 
+/* Only a real "close file" button when a file is open */
+QToolButton#FileCloseButton:disabled {
+    background-color: transparent;
+}
+
 QToolButton#FileCloseButton:hover, QToolButton#FileCloseButton::menu-button:hover {
     background-color: @danger-hover;
 }

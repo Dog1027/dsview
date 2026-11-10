@@ -60,10 +60,13 @@ void XToolButton::paintEvent(QPaintEvent *event)
     QStyleOptionToolButton opt;
     initStyleOption(&opt);
 
-    // 1. Background/frame over the whole button, without label.
+    // 1. Background/frame over the whole button, without label (and without
+    //    the menu arrow: the label pass draws it next to the text).
     QStyleOptionToolButton bg = opt;
     bg.text.clear();
     bg.icon = QIcon();
+    bg.features &= ~(QStyleOptionToolButton::HasMenu | QStyleOptionToolButton::MenuButtonPopup);
+    bg.subControls &= ~QStyle::SC_ToolButtonMenu;
     p.drawComplexControl(QStyle::CC_ToolButton, bg);
 
     // 2. The label at its natural width, centered. Drop the hover/pressed/
