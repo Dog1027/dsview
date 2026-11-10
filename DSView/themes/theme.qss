@@ -736,7 +736,6 @@ QComboBox
     border: 1px solid @border;
     border-radius: 4px;
     padding: 3px 6px;
-    min-width: 30px;
 }
 
 QComboBox QAbstractItemView
@@ -1849,4 +1848,12 @@ QDialogButtonBox QPushButton
 {
     min-width: 72px;
     padding: 5px 12px;
+}
+
+/* Magnifier shown inside the search field of the search bar */
+QPushButton#inline_search_icon,
+QPushButton#inline_search_icon:disabled
+{
+    background-color: transparent;
+    border: none;
 }

@@ -126,7 +126,7 @@ ProtocolDock::ProtocolDock(QWidget *parent, view::View &view, SigSession *sessio
  
     _pro_search_button = new XToolButton(top_panel);
     QHBoxLayout *pro_search_lay = new QHBoxLayout();
-    pro_search_lay->setSpacing(2);
+    pro_search_lay->setSpacing(6);
     pro_search_lay->addWidget(_pro_add_button);
     pro_search_lay->addWidget(_del_all_button);
     pro_search_lay->addWidget(_pro_keyword_edit, 1); 
@@ -148,7 +148,7 @@ ProtocolDock::ProtocolDock(QWidget *parent, view::View &view, SigSession *sessio
     _bot_title_label = new QLabel(bot_panel);
 
     QHBoxLayout *bot_title_layout = new QHBoxLayout();
-    bot_title_layout->setSpacing(2);
+    bot_title_layout->setSpacing(6);
     bot_title_layout->addWidget(_bot_set_button);
     bot_title_layout->addWidget(_bot_save_button);
     bot_title_layout->addWidget(_bot_title_label, 1);
@@ -163,7 +163,7 @@ ProtocolDock::ProtocolDock(QWidget *parent, view::View &view, SigSession *sessio
     _ann_search_button->setDisabled(true);
    
     QHBoxLayout *ann_search_layout = new QHBoxLayout();
-    ann_search_layout->setSpacing(2);
+    ann_search_layout->setSpacing(6);
     ann_search_layout->addWidget(_pre_button);
     ann_search_layout->addWidget(_ann_search_button);
     ann_search_layout->addWidget(_ann_search_edit, 1);

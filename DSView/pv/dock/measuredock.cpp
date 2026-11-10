@@ -276,7 +276,7 @@ void MeasureDock::build_dist_pannel()
         QHBoxLayout *row_layout = new QHBoxLayout(row_widget);
         row_layout->setAlignment(Qt::AlignLeft);
         row_layout->setContentsMargins(0,0,0,0);
-        row_layout->setSpacing(0);
+        row_layout->setSpacing(6);
         row_widget->setLayout(row_layout);
 
         QString iconPath = GetIconPath();
@@ -293,11 +293,9 @@ void MeasureDock::build_dist_pannel()
         g_label->setContentsMargins(0,0,0,0);
 
         row_layout->addWidget(del_btn);
-        row_layout->addSpacing(5);
         row_layout->addWidget(s_btn);
         row_layout->addWidget(g_label);
         row_layout->addWidget(e_btn);
-        row_layout->addSpacing(5);
         row_layout->addWidget(r_label, 100);
 
         r_label->setFont(font);
@@ -409,7 +407,7 @@ void MeasureDock::build_edge_pannel()
         QHBoxLayout *row_layout = new QHBoxLayout(row_widget);
         row_layout->setAlignment(Qt::AlignLeft);
         row_layout->setContentsMargins(0,0,0,0);
-        row_layout->setSpacing(0);
+        row_layout->setSpacing(6);
         row_widget->setLayout(row_layout);
 
         QString iconPath = GetIconPath();
@@ -435,13 +433,11 @@ void MeasureDock::build_edge_pannel()
         }
 
         row_layout->addWidget(del_btn);
-        row_layout->addSpacing(5);
         row_layout->addWidget(s_btn);
         row_layout->addWidget(g_label);
         row_layout->addWidget(e_btn);
         row_layout->addWidget(a_label);
         row_layout->addWidget(ch_cmb);
-        row_layout->addSpacing(5);
         row_layout->addWidget(r_label, 100);
 
         g_label->setFont(font);

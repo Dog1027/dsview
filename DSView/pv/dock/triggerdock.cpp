@@ -638,6 +638,7 @@ void TriggerDock::setup_adv_tab()
         QVBoxLayout *stage_layout = new QVBoxLayout();
         QGridLayout *stage_glayout = new QGridLayout();
         stage_glayout->setVerticalSpacing(5);
+        stage_glayout->setHorizontalSpacing(8);
 
         row = 1;
         if (_cur_ch_num == 32) {
@@ -782,7 +783,7 @@ void TriggerDock::setup_adv_tab()
     hex_ckbox->setMaximumWidth(18);
 
     QHBoxLayout *hex_lay = new QHBoxLayout();
-    hex_lay->setSpacing(5);
+    hex_lay->setSpacing(8);
     hex_lay->setContentsMargins(0,0,0,0);
     QWidget *hex_wid = new QWidget();
     hex_wid->setLayout(hex_lay);
@@ -802,6 +803,7 @@ void TriggerDock::setup_adv_tab()
     QVBoxLayout *serial_layout = new QVBoxLayout();
     QGridLayout *serial_glayout = new QGridLayout();
     serial_glayout->setVerticalSpacing(5);
+    serial_glayout->setHorizontalSpacing(8);
 
     row = 1;
     if (_cur_ch_num == 32) {

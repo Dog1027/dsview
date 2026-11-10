@@ -88,6 +88,7 @@ SearchDock::SearchDock(QWidget *parent, View &view, SigSession *session) :
     _is_cancel = false;
 
     _search_button = new QPushButton(this);
+    _search_button->setObjectName("inline_search_icon");   // icon inside the field
     _search_button->setFixedWidth(_search_button->height());
     _search_button->setDisabled(true);
 
