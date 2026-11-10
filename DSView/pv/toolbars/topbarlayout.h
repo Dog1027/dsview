@@ -67,7 +67,7 @@ static const char *const TOP_BAR_LAYOUT = R"LAYOUT(
         |
         sample_count  at  sample_rate
         |
-        mode:icon  start  instant
+        mode:icon  start:icon  instant:icon
 
     [tools]
         function:icon

@@ -23,6 +23,10 @@
 #define MYSTYLE_H
 
 #include <QProxyStyle>
+#include <QMenu>
+#include <QAbstractButton>
+#include <QComboBox>
+#include <QTabBar>
 
 class MyStyle : public QProxyStyle
 {
@@ -35,6 +39,34 @@ class MyStyle : public QProxyStyle
         }
         return s;
     }
+
+    // No underlined mnemonic letters (Alt shortcuts still work).
+    int styleHint(StyleHint hint, const QStyleOption *option = nullptr,
+                  const QWidget *widget = nullptr, QStyleHintReturn *ret = nullptr) const override {
+        if (hint == QStyle::SH_UnderlineShortcut)
+            return 0;
+        return QProxyStyle::styleHint(hint, option, widget, ret);
+    }
+
+    // Menus get a transparent window, so the rounded corners of the
+    // stylesheet (QMenu in theme.qss) are not painted over.
+    void polish(QWidget *widget) override {
+        if (qobject_cast<QMenu*>(widget) != nullptr && !widget->testAttribute(Qt::WA_TranslucentBackground)) {
+            widget->setAttribute(Qt::WA_TranslucentBackground);
+            widget->setWindowFlag(Qt::FramelessWindowHint);
+            widget->setWindowFlag(Qt::NoDropShadowWindowHint);
+        }
+
+        // Anything clickable shows the pointing hand.
+        if (qobject_cast<QAbstractButton*>(widget) != nullptr
+            || qobject_cast<QComboBox*>(widget) != nullptr
+            || qobject_cast<QTabBar*>(widget) != nullptr) {
+            widget->setCursor(Qt::PointingHandCursor);
+        }
+
+        QProxyStyle::polish(widget);
+    }
+    using QProxyStyle::polish;
 };
 
 #endif // MYSTYLE_H

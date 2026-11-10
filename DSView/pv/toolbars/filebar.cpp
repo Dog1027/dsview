@@ -74,6 +74,7 @@ FileBar::FileBar(SigSession *session, QWidget *parent) :
     _action_capture->setObjectName(QString::fromUtf8("actionCapture"));
  
     _file_button.setPopupMode(QToolButton::InstantPopup);
+    _file_button.setObjectName("file_menu_button");
 
     _menu = new QMenu(this);
     _menu->addMenu(_menu_session);
@@ -125,7 +126,7 @@ void FileBar::reStyle()
     _action_save->setIcon(QIcon(iconPath+"/save.svg"));
     _action_export->setIcon(QIcon(iconPath+"/export.svg"));
     _action_capture->setIcon(QIcon(iconPath+"/capture.svg"));
-    _file_button.setIcon(QIcon(iconPath+"/file.svg"));
+    _file_button.setIcon(QIcon(iconPath+"/folder.svg"));
 }
 
 void FileBar::on_actionOpen_triggered()

@@ -104,6 +104,7 @@ LogoBar::LogoBar(SigSession *session, QWidget *parent) :
     _logo_button.setMenu(_menu);
 
     _logo_button.setPopupMode(QToolButton::InstantPopup);
+    _logo_button.setObjectName("help_menu_button");
 
     add_item("help", &_logo_button); // placement: topbarlayout.h
 
@@ -153,20 +154,16 @@ void LogoBar::reStyle()
     _update->setIcon(QIcon(iconPath+"/update.svg"));
     _log->setIcon(QIcon(iconPath+"/log.svg"));
 
-    if (_connected)
-        _logo_button.setIcon(QIcon(iconPath+"/logo_color.svg"));
-    else
-        _logo_button.setIcon(QIcon(iconPath+"/logo_noColor.svg"));
+    // The device state is shown in the status bar; this is just "Help".
+    _logo_button.setIcon(QIcon(iconPath+"/help.svg"));
 }
 
 void LogoBar::dsl_connected(bool conn)
 {
     _connected = conn;
     QString iconPath =  GetIconPath();
-    if (_connected)
-        _logo_button.setIcon(QIcon(iconPath+"/logo_color.svg"));
-    else
-        _logo_button.setIcon(QIcon(iconPath+"/logo_noColor.svg"));
+    // The device state is shown in the status bar; this is just "Help".
+    _logo_button.setIcon(QIcon(iconPath+"/help.svg"));
 }
 
 void LogoBar::on_actionEn_triggered()

@@ -113,6 +113,7 @@ public:
 
 protected: 
     void resizeEvent(QResizeEvent *event);
+    void paintEvent(QPaintEvent *event);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject *object, QEvent *event) override;
 
@@ -139,6 +140,7 @@ public slots:
 private:
     void hide_border();
     void show_border();
+    void set_frame_maximized(bool maximized);
     void writeSettings();
     void ReadSettings();
     void AttachNativeWindow();
@@ -159,6 +161,7 @@ private:
     MainWindow *_mainWindow;
 
     QGridLayout *_layout;
+    QFrame      *_window_frame;   // rounded window background, see theme.qss
     widgets::Border *_left;
     widgets::Border *_right;
     widgets::Border *_top;

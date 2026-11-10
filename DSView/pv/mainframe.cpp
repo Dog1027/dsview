@@ -20,6 +20,7 @@
  */
 
 #include "mainframe.h"
+#include <QStyle>
 
 #include "toolbars/titlebar.h"
 #include "dialogs/dsmessagebox.h"
@@ -70,6 +71,7 @@ namespace pv {
 MainFrame::MainFrame()
 {
     _layout = NULL;
+    _window_frame = NULL;
     _bDraging = false;
     _hit_border = None;
     _freezing = false; 
@@ -124,7 +126,11 @@ MainFrame::MainFrame()
     _mainWindow = new MainWindow(_titleBar, this);
     _mainWindow->setWindowFlags(Qt::Widget);
 
-    QVBoxLayout *vbox = new QVBoxLayout();
+    // The title bar and the main window sit on one frame that paints the
+    // window background with rounded corners ("Window frame" in theme.qss).
+    _window_frame = new QFrame(this);
+    _window_frame->setObjectName("window_frame");
+    QVBoxLayout *vbox = new QVBoxLayout(_window_frame);
     vbox->setContentsMargins(0,0,0,0);
     vbox->setSpacing(0);
     vbox->addWidget(_titleBar);
@@ -168,14 +174,14 @@ MainFrame::MainFrame()
         _layout->addWidget(_top, 0, 1);
         _layout->addWidget(_top_right, 0, 2);
         _layout->addWidget(_left, 1, 0);
-        _layout->addLayout(vbox, 1, 1);
+        _layout->addWidget(_window_frame, 1, 1);
         _layout->addWidget(_right, 1, 2);
         _layout->addWidget(_bottom_left, 2, 0);
         _layout->addWidget(_bottom, 2, 1);
         _layout->addWidget(_bottom_right, 2, 2);
     }
     else{
-        _layout->addLayout(vbox, 0, 0);
+        _layout->addWidget(_window_frame, 0, 0);
     }
 
 #ifdef _WIN32
@@ -321,8 +327,48 @@ void MainFrame::unfreezing()
     _freezing = false;
 }
 
+void MainFrame::paintEvent(QPaintEvent *event)
+{
+    QFrame::paintEvent(event);
+
+    // Soft shadow in the resize margin around the rounded window frame
+    // (the Border widgets there are transparent). None when maximized.
+    if (_window_frame == NULL || _window_frame->property("maximized").toBool()
+        || _top_left == NULL || !_top_left->isVisible())
+        return;
+
+    static const int darkAlpha[Margin]  = {6, 12, 22, 38, 60};
+    static const int lightAlpha[Margin] = {3, 6, 11, 19, 30};
+    const int *alpha = AppConfig::Instance().IsDarkStyle() ? darkAlpha : lightAlpha;
+    const qreal radius = 10;   // keep in sync with QFrame#window_frame
+
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing, true);
+    p.setBrush(Qt::NoBrush);
+
+    QRectF r = _window_frame->geometry();
+    for (int i = 0; i < Margin; i++){
+        // ring i is (i + 1) pixels outside the frame, outermost is faintest
+        QRectF ring = r.adjusted(-i - 0.5, -i - 0.5, i + 0.5, i + 0.5);
+        p.setPen(QPen(QColor(0, 0, 0, alpha[Margin - 1 - i]), 1));
+        p.drawRoundedRect(ring, radius + i + 0.5, radius + i + 0.5);
+    }
+}
+
+void MainFrame::set_frame_maximized(bool maximized)
+{
+    // Square corners and no outline while maximized.
+    if (_window_frame == NULL || _window_frame->property("maximized").toBool() == maximized)
+        return;
+    _window_frame->setProperty("maximized", maximized);
+    _window_frame->style()->unpolish(_window_frame);
+    _window_frame->style()->polish(_window_frame);
+}
+
 void MainFrame::hide_border()
 {  
+    set_frame_maximized(true);
+
     if (_top_left == NULL)
         return;
 
@@ -338,6 +384,8 @@ void MainFrame::hide_border()
 
 void MainFrame::show_border()
 {  
+    set_frame_maximized(false);
+
     if (_top_left == NULL)
         return;
 

@@ -80,6 +80,10 @@
         <file>icons/dark/display.svg</file>
         <file>icons/dark/export.svg</file>
         <file>icons/dark/fft.svg</file>
+        <file>icons/dark/folder.svg</file>
+        <file>icons/dark/help.svg</file>
+        <file>icons/light/folder.svg</file>
+        <file>icons/light/help.svg</file>
         <file>icons/dark/file.svg</file>
         <file>icons/dark/gear.svg</file>
         <file>icons/dark/hidden.svg</file>

@@ -63,21 +63,22 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
 
     setObjectName("TitleBar");
     setContentsMargins(0,0,0,0);
-    // 35px for the main window, a bit less for dialogs.
-    const int barHeight = top ? 35 : 32;
+    // Tall enough that the 28px hover circle of the window buttons keeps
+    // clear of the window edge.
+    const int barHeight = top ? 42 : 36;
 
     // Window buttons. On Windows: wide, full-height buttons (red close).
-    // Elsewhere: compact buttons with just a thin glyph, as VS Code shows
-    // them on Linux. Their look is in theme.qss ("Window title bar").
+    // Elsewhere: just a thin glyph, a soft circle appears on hover.
+    // Their look is in theme.qss ("Window title bar").
 #ifdef _WIN32
     const QSize buttonSize(46, barHeight);
     const int buttonGap = 0;
     const int rightMargin = 0;
     const bool compactButtons = false;
 #else
-    const QSize buttonSize(32, barHeight - 8);
-    const int buttonGap = 2;
-    const int rightMargin = 6;
+    const QSize buttonSize(28, 28);
+    const int buttonGap = 6;
+    const int rightMargin = 10;
     const bool compactButtons = true;
 #endif
 
@@ -88,7 +89,9 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
     _title = new QLabel(this);
 
     QHBoxLayout *buttonLay = new QHBoxLayout();
-    buttonLay->setContentsMargins(0, 0, rightMargin, 0);
+    // Centre the buttons vertically (alignment alone leaves them at the top).
+    const int vMargin = (barHeight - buttonSize.height()) / 2;
+    buttonLay->setContentsMargins(0, vMargin, rightMargin, barHeight - buttonSize.height() - vMargin);
     buttonLay->setSpacing(buttonGap);
 
     auto setupButton = [&](QToolButton *bt, const char *name) {
@@ -97,7 +100,7 @@ TitleBar::TitleBar(bool top, QWidget *parent, ITitleParent *titleParent, bool ha
         bt->setFixedSize(buttonSize);
         bt->setIconSize(QSize(16, 16));
         bt->setFocusPolicy(Qt::NoFocus);
-        buttonLay->addWidget(bt, 0, Qt::AlignVCenter);
+        buttonLay->addWidget(bt);
     };
 
     if (_isTop) {
@@ -179,20 +182,10 @@ void TitleBar::paintEvent(QPaintEvent *event)
 
     p.setRenderHint(QPainter::Antialiasing, true);
 
-    // Logo: small and vertically centred, like an app icon in VS Code.
-    const qreal xgap = 1.6;
-    const qreal xstart = 14;
-    const qreal h = 18;
-    const qreal y0 = (height() - h) / 2.0;
-    auto bar = [&](QColor c, int i, qreal from, qreal to) {
-        p.setPen(QPen(c, 1.6, Qt::SolidLine, Qt::FlatCap));
-        p.drawLine(QPointF(xstart + xgap*i, y0 + h*from), QPointF(xstart + xgap*i, y0 + h*to));
-    };
-    bar(QColor(213, 15, 37),   0, 0.50, 0.66);  bar(QColor(213, 15, 37),   18, 0.34, 0.50);
-    bar(QColor(238, 178, 17),  2, 0.50, 0.83);  bar(QColor(238, 178, 17),  16, 0.17, 0.50);
-    bar(QColor(17, 133, 209),  4, 0.50, 1.00);  bar(QColor(17, 133, 209),  14, 0.00, 0.50);
-    bar(QColor(0, 153, 37),    6, 0.50, 0.83);  bar(QColor(0, 153, 37),    12, 0.17, 0.50);
-    bar(QColor(109, 50, 156),  8, 0.50, 0.66);  bar(QColor(109, 50, 156),  10, 0.34, 0.50);
+    // App icon, like other apps show in their title bar.
+    static const QIcon logo(":/icons/logo.svg");
+    const int size = 18;
+    logo.paint(&p, QRect(12, (height() - size) / 2, size, size));
 
     QWidget::paintEvent(event);
 }
