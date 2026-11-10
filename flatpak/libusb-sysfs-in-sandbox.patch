@@ -1,0 +1,19 @@
+libusb: detect sysfs where it is read (/sys/bus/usb/devices).
+
+In a Flatpak sandbox /sys is a tmpfs and sysfs is bind-mounted below it,
+so the statfs("/sys") check fails, libusb falls back to usbfs and the
+device speed is unknown (DSView then rejects the instrument).
+
+--- a/libusb/os/linux_usbfs.c	2025-05-03 17:11:20.000000000 +0800
++++ b/libusb/os/linux_usbfs.c	2026-11-10 18:38:10.378127867 +0800
+@@ -390,7 +390,9 @@
+ 	if (sysfs_available == -1) {
+ 		struct statfs statfsbuf;
+ 
+-		r = statfs(SYSFS_MOUNT_PATH, &statfsbuf);
++		/* Check the directory actually read: in a Flatpak sandbox /sys is a
++		 * tmpfs with sysfs bind-mounted below it (e.g. /sys/bus). */
++		r = statfs(SYSFS_DEVICE_PATH, &statfsbuf);
+ 		if (r == 0 && statfsbuf.f_type == SYSFS_MAGIC) {
+ 			usbi_dbg(ctx, "sysfs is available");
+ 			sysfs_available = 1;
