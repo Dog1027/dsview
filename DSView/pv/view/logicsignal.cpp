@@ -119,7 +119,17 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
     const int y = get_y() + _totalHeight * 0.5;
     const double scale = _view->scale();
     assert(scale > 0);
-    const int64_t offset = _view->offset();
+    int64_t offset = _view->offset();
+
+    // The time axis has a margin before the first sample, where the offset
+    // is negative: draw from the pixel of sample 0 instead.
+    int shift = 0;
+    if (offset < 0){
+        shift = -offset;
+        offset = 0;
+    }
+    if (right - left - shift <= 0)
+        return;
 
     const int high_offset = y - _totalHeight + 0.5f;
     const int low_offset = y + 0.5f;
@@ -137,7 +147,7 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
     const int64_t last_sample = end_align_sample;
 	const double samples_per_pixel = samplerate * scale;
 
-    uint16_t width = right - left;
+    uint16_t width = right - left - shift;
     const double start = offset * samples_per_pixel;
     const double end = (offset + width + 1) * samples_per_pixel;
     const uint64_t end_index = min(max((int64_t)floor(end), (int64_t)0), last_sample);
@@ -187,8 +197,11 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
         wave_lines.push_back(QLine(preX, preY, x, preY));
     }
 
+    p.save();
+    p.translate(shift, 0);
     p.setPen(_colour.isValid() ? _colour : fore);
     p.drawLines(wave_lines.data(), wave_lines.size());
+    p.restore();
 }
 
 void LogicSignal::paint_caps(QPainter &p, QLineF *const lines,

@@ -405,12 +405,21 @@ void AnalogSignal::paint_mid(QPainter &p, int left, int right, QColor fore, QCol
     const float top = get_y() - height * 0.5;
     const float bottom = get_y() + height * 0.5;
     const float zeroY = ratio2pos(get_zero_ratio());
-    const int width = right - left + 1;
-
     const double scale = _view->scale();
 
     assert(scale > 0);
-    const int64_t offset = _view->offset();
+    int64_t offset = _view->offset();
+
+    // The time axis has a margin before the first sample, where the offset
+    // is negative: draw from the pixel of sample 0 instead.
+    int shift = 0;
+    if (offset < 0){
+        shift = -offset;
+        offset = 0;
+    }
+    const int width = right - left + 1 - shift;
+    if (width <= 0)
+        return;
 
     const int order = _data->get_ch_order(get_index());
     if (order == -1)
@@ -437,6 +446,8 @@ void AnalogSignal::paint_mid(QPainter &p, int left, int right, QColor fore, QCol
     if (show_length <= 0)
         return;
 
+    p.save();
+    p.translate(shift, 0);
     if (samples_per_pixel < EnvelopeThreshold){
         paint_trace(p, _data, zeroY,
             start_pixel, start_index, show_length,
@@ -449,6 +460,7 @@ void AnalogSignal::paint_mid(QPainter &p, int left, int right, QColor fore, QCol
             samples_per_pixel, order,
             top, bottom, width);
     }
+    p.restore();
 }
 
 void AnalogSignal::paint_fore(QPainter &p, int left, int right, QColor fore, QColor back)
