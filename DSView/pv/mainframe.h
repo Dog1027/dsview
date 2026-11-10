@@ -100,7 +100,6 @@ public:
     MainFrame();
  
     void ShowFormInit();
-    void ShowHelpDocAsync();
   
     bool IsMaxsized();
     bool IsNormalsized();
@@ -129,7 +128,6 @@ signals:
 
 public slots:
     void unfreezing();   
-    void show_doc();
     void setTaskbarProgress(int progress);
 
     void showNormal();

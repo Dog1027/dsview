@@ -188,14 +188,6 @@
         "text": "Clear Trig"
     },
     {
-        "id": "IDS_MSG_IGNORE",
-        "text": "Ignore"
-    },
-    {
-        "id": "IDS_MSG_OPEN",
-        "text": "Open"
-    },
-    {
         "id": "IDS_MSG_FAIL_TO_LOAD",
         "text": "Failed to load"
     },

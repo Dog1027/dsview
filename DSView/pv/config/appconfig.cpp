@@ -256,7 +256,6 @@ static void _loadHistory(UserHistory &o, QSettings &st)
     st.beginGroup("UserHistory");
     getFiled("exportDir", st, o.exportDir, ""); 
     getFiled("saveDir", st, o.saveDir, ""); 
-    getFiled("showDocuments", st, o.showDocuments, true);
     getFiled("screenShotPath", st, o.screenShotPath, ""); 
     getFiled("sessionDir", st, o.sessionDir, ""); 
     getFiled("openDir", st, o.openDir, ""); 
@@ -270,7 +269,6 @@ static void _saveHistory(UserHistory &o, QSettings &st)
     st.beginGroup("UserHistory");
     setFiled("exportDir", st, o.exportDir); 
     setFiled("saveDir", st, o.saveDir); 
-    setFiled("showDocuments", st, o.showDocuments); 
     setFiled("screenShotPath", st, o.screenShotPath); 
     setFiled("sessionDir", st, o.sessionDir); 
     setFiled("openDir", st, o.openDir); 

@@ -37,9 +37,7 @@
 #include <QDialogButtonBox>
 #include <QBitmap>
 #include <QResizeEvent>
-#include <QDesktopServices>
 #include <QPushButton>
-#include <QMessageBox> 
 #include <QScreen>
 #include <QApplication>
 #include <QFile> 
@@ -1131,58 +1129,6 @@ void MainFrame::setTaskbarProgress(int progress)
 #else
 	(void)progress;
 #endif
-}
-
-void MainFrame::ShowHelpDocAsync()
-{
-    QTimer::singleShot(300, this, [this](){
-                show_doc();
-            });
-}
-
-void MainFrame::show_doc()
-{
-     AppConfig &app = AppConfig::Instance(); 
-     int lan = app.frameOptions.language;
-      
-    if (app.userHistory.showDocuments) {
-        dialogs::DSDialog dlg(this, true);
-        dlg.setTitle(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DOCUMENT), "Document"));
-
-        QString path = GetAppDataDir() + "/showDoc" + QString::number(lan)+ ".png";
-        if (!QFile::exists(path)){
-            path = ":/icons/showDoc"+QString::number(lan)+".png";
-        }
-
-        QLabel tipsLabel;
-        tipsLabel.setPixmap(path);
-
-        QMessageBox msg;
-        msg.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
-        msg.setContentsMargins(0, 0, 0, 0);
-       
-        QPushButton *noMoreButton = msg.addButton(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NOT_SHOW_AGAIN), "Not Show Again"), QMessageBox::ActionRole);
-        msg.addButton(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_IGNORE), "Ignore"), QMessageBox::ActionRole);
-        QPushButton *openButton = msg.addButton(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_OPEN), "Open"), QMessageBox::ActionRole);
-
-        QVBoxLayout layout;
-        layout.addWidget(&tipsLabel);
-        layout.addWidget(&msg, 0, Qt::AlignRight);
-        layout.setContentsMargins(0, 0, 0, 0);
-
-        dlg.layout()->addLayout(&layout);
-        connect(&msg, SIGNAL(buttonClicked(QAbstractButton*)), &dlg, SLOT(accept()));
-
-        dlg.exec();
-
-        if (msg.clickedButton() == openButton) {
-            _mainWindow->openDoc();
-        }
-        if (msg.clickedButton() == noMoreButton){
-            app.userHistory.showDocuments = false;
-            app.SaveHistory();
-        }   
-    }
 }
 
 QWidget* MainFrame::GetMainWindow()

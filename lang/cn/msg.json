@@ -187,14 +187,6 @@
         "text": "清除触发"
     },
     {
-        "id": "IDS_MSG_IGNORE",
-        "text": "忽略"
-    },
-    {
-        "id": "IDS_MSG_OPEN",
-        "text": "打开"
-    },
-    {
         "id": "IDS_MSG_FAIL_TO_LOAD",
         "text": "加载失败"
     },

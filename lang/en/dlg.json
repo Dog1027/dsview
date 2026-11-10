@@ -44,10 +44,6 @@
         "text": "Save Session"
     },
     {
-        "id": "IDS_DLG_DOCUMENT",
-        "text": "Document"
-    },
-    {
         "id": "IDS_DLG_TRIGGER_DOCK_TITLE",
         "text": "Trigger Setting"
     },

@@ -272,7 +272,6 @@ bool bHighScale = true;
 		pv::MainFrame w;
 		control->Start();
 		w.ShowFormInit();  
-		w.ShowHelpDocAsync();  //to show the dailog for open help document
 
 		if (!galleryShotDir.isEmpty()){
 			QTimer::singleShot(1500, [galleryShotDir]() { pv::dialogs::UiGallery::Shoot(galleryShotDir); });

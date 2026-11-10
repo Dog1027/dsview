@@ -111,7 +111,6 @@ struct UserHistory
 { 
   QString   exportDir;
   QString   saveDir;
-  bool      showDocuments;
   QString   screenShotPath;
   QString   sessionDir;
   QString   openDir;
