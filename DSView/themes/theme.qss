@@ -663,10 +663,6 @@ QPushButton:disabled
     color: @text-disabled;
 }
 
-QPushButton:focus
-{
-    border: 1px solid @accent;
-}
 
 QPushButton:hover
 {
@@ -699,6 +695,22 @@ QPushButton:default:hover
 {
     background-color: @accent-hover;
     border: 1px solid @accent-hover;
+}
+
+/* Keyboard focus (set by MyStyle for Tab / Backtab focus only):
+   a 2 px ring, not a fill, so it does not look like the default button
+   or a pressed one. Padding 1 px less keeps the size. */
+QPushButton[kbfocus="true"],
+QPushButton[kbfocus="true"]:hover
+{
+    border: 2px solid @accent;
+    padding: 4px;
+}
+
+QPushButton[kbfocus="true"]:default,
+QPushButton[kbfocus="true"]:default:hover
+{
+    border: 2px solid @text-bright;
 }
 
 QComboBox:hover,
@@ -1849,6 +1861,11 @@ QDialogButtonBox QPushButton
 {
     min-width: 72px;
     padding: 5px 12px;
+}
+
+QDialogButtonBox QPushButton[kbfocus="true"]
+{
+    padding: 4px 11px;
 }
 
 /* Magnifier shown inside the search field of the search bar */

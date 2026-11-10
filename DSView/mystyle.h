@@ -28,6 +28,8 @@
 #include <QComboBox>
 #include <QTabBar>
 #include <QDialogButtonBox>
+#include <QPushButton>
+#include <QFocusEvent>
 
 class MyStyle : public QProxyStyle
 {
@@ -74,9 +76,57 @@ class MyStyle : public QProxyStyle
             widget->setCursor(Qt::PointingHandCursor);
         }
 
+        if (QPushButton *pb = qobject_cast<QPushButton*>(widget)) {
+            // A mouse click does not leave focus on a push button; only
+            // the keyboard (Tab) shows the focus ring. Otherwise a clicked
+            // button keeps a highlight and looks stuck.
+            if (pb->focusPolicy() == Qt::StrongFocus)
+                pb->setFocusPolicy(Qt::TabFocus);
+
+            // No auto-default: in a QDialog the default (blue) look would
+            // follow the focused button. In a button box the action button
+            // (OK / Yes / Save) is the default, and stays it.
+            pb->setAutoDefault(false);
+
+            // Focus ring only for keyboard focus ([kbfocus="true"] in
+            // theme.qss), not when a dialog puts the focus on its button.
+            pb->installEventFilter(this);
+            if (QDialogButtonBox *box = qobject_cast<QDialogButtonBox*>(pb->parentWidget())) {
+                const QDialogButtonBox::ButtonRole role = box->buttonRole(pb);
+                if (role == QDialogButtonBox::AcceptRole || role == QDialogButtonBox::YesRole) {
+                    bool other = false;
+                    for (QAbstractButton *b : box->buttons()) {
+                        QPushButton *o = qobject_cast<QPushButton*>(b);
+                        if (o && o != pb && o->isDefault())
+                            other = true;
+                    }
+                    if (!other)
+                        pb->setDefault(true);
+                }
+            }
+        }
+
         QProxyStyle::polish(widget);
     }
     using QProxyStyle::polish;
+
+    bool eventFilter(QObject *obj, QEvent *event) override {
+        if (event->type() == QEvent::FocusIn || event->type() == QEvent::FocusOut) {
+            QWidget *w = qobject_cast<QWidget*>(obj);
+            bool kb = false;
+            if (event->type() == QEvent::FocusIn) {
+                const Qt::FocusReason r = static_cast<QFocusEvent*>(event)->reason();
+                kb = r == Qt::TabFocusReason || r == Qt::BacktabFocusReason;
+            }
+            if (w && w->property("kbfocus").toBool() != kb) {
+                w->setProperty("kbfocus", kb);
+                w->style()->unpolish(w);
+                w->style()->polish(w);
+                w->update();
+            }
+        }
+        return QProxyStyle::eventFilter(obj, event);
+    }
 };
 
 #endif // MYSTYLE_H

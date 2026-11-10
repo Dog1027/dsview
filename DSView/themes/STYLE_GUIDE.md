@@ -134,6 +134,12 @@ Components
 
 **Push buttons.** Plain by default. In a `QDialogButtonBox`: min width
 72, padding 5 × 12. Exactly one default (blue) button per dialog.
+`MyStyle::polish` makes this hold everywhere: no auto-default (else the
+blue moves to whichever button has the focus), the first OK / Yes /
+Save in a button box is the default. Push buttons take focus only by
+Tab, and only that keyboard focus shows a 2 px ring
+(`[kbfocus="true"]`: `@accent`, `@text-bright` on the default button),
+so a clicked button never looks stuck.
 
 **Dialog buttons.** Always a `QDialogButtonBox` at the bottom right, in
 its own row of the dialog layout. Button order is the platform's
