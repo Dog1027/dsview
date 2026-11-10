@@ -118,7 +118,10 @@ Rules:
   line up. Not allowed: fixed heights and fixed overall sizes; they clip
   text at bigger font sizes.
 - A dialog is as big as its content (`sizeHint`). It only scrolls when the
-  content is taller than 70% of the screen (see `DeviceOptions`). A dialog
+  content is taller than 70% of the screen (see `DeviceOptions`). Measure
+  after `ensurePolished()` (the style sheet and fonts change the sizes),
+  and give the dialog a starting size with `resize()`, not
+  `setFixedSize()`, so it can still grow to its content. A dialog
   with long text (About) gets a starting size with `resize()`, not a fixed
   one.
 - A dialog without a default button gives the first focus to its content,

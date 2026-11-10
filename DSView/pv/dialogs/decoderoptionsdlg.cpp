@@ -196,10 +196,18 @@ void DecoderOptionsDlg::load_options_view()
     (void)h_ex2;
 
     // Natural size; the options scroll only when they would make the
-    // dialog taller than most of the screen.
+    // dialog taller than most of the screen. Measure after the style sheet
+    // and fonts are applied (polish), or the content gets wider later and
+    // is cut at the right.
+    dlg->ensurePolished();
     decoder_lay->activate();
     QSize content = container_panel->sizeHint();
     content.setWidth(qMax(content.width(), _content_width));
+    container_panel->updateGeometry();
+    scroll_lay->activate();
+    scroll_pannel->updateGeometry();
+    form->invalidate();
+    dlg->layout()->activate();
 
     int maxHeight = 400;
     if (QScreen *screen = QGuiApplication::primaryScreen())
@@ -208,6 +216,9 @@ void DecoderOptionsDlg::load_options_view()
 
     if (content.height() > maxHeight)
     { 
+        // Out of the panel's layout first, or the dialog still counts its
+        // full height and shows it as empty space around the scroll area.
+        scroll_lay->removeWidget(container_panel);
         QScrollArea *scroll = new QScrollArea(scroll_pannel);
         scroll->setWidgetResizable(true);
         scroll->setWidget(container_panel);
@@ -217,11 +228,19 @@ void DecoderOptionsDlg::load_options_view()
         scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         int w = content.width() + scroll->verticalScrollBar()->sizeHint().width() + 4;
         scroll_lay->addWidget(scroll);
-        scroll->setFixedSize(w, maxHeight);
+        scroll->setMinimumSize(w, maxHeight);
+        scroll->setMaximumHeight(maxHeight);
     }
 
+    // A starting size, not a fixed one: the layout keeps the dialog at
+    // least as big as its content. The form still holds the size of the
+    // panel from before the scroll area (the change reaches it by a
+    // posted event), so drop that first.
+    scroll_lay->activate();
+    scroll_pannel->updateGeometry();
+    form->invalidate();
     dlg->layout()->activate();
-    dlg->setFixedSize(dlg->sizeHint());
+    dlg->resize(dlg->sizeHint());
  
     connect(_start_comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(on_region_set(int)));
     connect(_end_comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(on_region_set(int))); 

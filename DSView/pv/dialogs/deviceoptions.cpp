@@ -858,7 +858,8 @@ void DeviceOptions::try_resize_scroll()
     }
 
     // The content takes its natural size; only when it is taller than most
-    // of the screen it scrolls.
+    // of the screen it scrolls. Measured after polish (style sheet, fonts).
+    this->ensurePolished();
     _container_lay->activate();
     QSize content = _container_panel->sizeHint();
     int maxHeight = 600;
