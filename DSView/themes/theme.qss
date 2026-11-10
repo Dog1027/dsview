@@ -1719,3 +1719,38 @@ QToolBar#activity_bar QToolBar::separator:vertical
     height: 1px;
     margin: 6px 10px;
 }
+
+
+/* ================================================================
+ * Status bar at the bottom (pv/ui/appstatusbar.cpp)
+ * ================================================================ */
+QStatusBar#app_status_bar
+{
+    background-color: @chrome;
+    border-top: 1px solid @divider;
+    color: @text-muted;
+    min-height: 24px;
+    padding: 0px 4px;
+}
+
+QStatusBar#app_status_bar::item
+{
+    border: none;
+}
+
+QStatusBar#app_status_bar QLabel
+{
+    background-color: transparent;
+    color: @text-muted;
+    padding: 0px 8px;
+}
+
+QStatusBar#app_status_bar QLabel#status_device
+{
+    color: @text;
+}
+
+QStatusBar#app_status_bar QLabel#status_state[working="true"]
+{
+    color: @accent-hover;
+}

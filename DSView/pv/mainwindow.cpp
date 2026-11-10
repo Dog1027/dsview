@@ -107,6 +107,7 @@
 #include "ui/theme.h"
 #include "toolbars/topbar.h"
 #include "toolbars/topbarlayout.h"
+#include "ui/appstatusbar.h"
 
 namespace pv
 {
@@ -206,6 +207,8 @@ namespace pv
         toolbars::TopBar *top_bar = new toolbars::TopBar(this);
         top_bar->build(sources, TOP_BAR_LAYOUT, activity_bar->placed());
         addToolBar(top_bar);
+
+        setStatusBar(new ui::AppStatusBar(_session, this));
 
         // Setup the dockWidget
         _protocol_dock = new QDockWidget(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PROTOCOL_DOCK_TITLE), "Decode Protocol"), this);

@@ -353,6 +353,7 @@ set(DSView_SOURCES
     DSView/pv/ui/xtoolbutton.cpp
     DSView/pv/ui/uimanager.cpp
     DSView/pv/ui/theme.cpp
+    DSView/pv/ui/appstatusbar.cpp
     DSView/pv/ui/popupdlglist.cpp
     DSView/pv/ui/xspinbox.cpp
     DSView/pv/ui/xprogressbar.cpp
