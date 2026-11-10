@@ -162,6 +162,7 @@ private:
 
     QGridLayout *_layout;
     QFrame      *_window_frame;   // rounded window background, see theme.qss
+    bool        _native_frame;    // system title bar and frame (Linux option)
     widgets::Border *_left;
     widgets::Border *_right;
     widgets::Border *_top;

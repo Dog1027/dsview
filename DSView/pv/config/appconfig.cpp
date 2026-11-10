@@ -195,6 +195,7 @@ static void _loadFrame(FrameOptions &o, QSettings &st)
     getFiled("style", st, o.style, THEME_STYLE_DARK);
     getFiled("language", st, o.language, -1);
     getFiled("isMax", st, o.isMax, false);  
+    getFiled("nativeTitleBar", st, o.nativeTitleBar, true);
     getFiled("left", st, o.left, 0);
     getFiled("top", st, o.top, 0);
     getFiled("right", st, o.right, 0);
@@ -229,6 +230,7 @@ static void _saveFrame(FrameOptions &o, QSettings &st)
     setFiled("style", st, o.style);
     setFiled("language", st, o.language);
     setFiled("isMax", st, o.isMax);  
+    setFiled("nativeTitleBar", st, o.nativeTitleBar);
     setFiled("left", st, o.left);
     setFiled("top", st, o.top);
     setFiled("right", st, o.right);

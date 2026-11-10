@@ -98,6 +98,7 @@ struct FrameOptions
   int         ox;
   int         oy;
   bool        isMax;
+  bool        nativeTitleBar;   // Linux: system window frame instead of DSView's own
   QString     displayName;
   QByteArray  windowState;
 

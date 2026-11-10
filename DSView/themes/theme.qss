@@ -1768,7 +1768,8 @@ QFrame#window_frame
     border-radius: 10px;
 }
 
-QFrame#window_frame[maximized="true"]
+QFrame#window_frame[maximized="true"],
+QFrame#window_frame[native="true"]
 {
     border: none;
     border-radius: 0px;

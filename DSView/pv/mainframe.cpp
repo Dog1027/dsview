@@ -72,6 +72,7 @@ MainFrame::MainFrame()
 {
     _layout = NULL;
     _window_frame = NULL;
+    _native_frame = false;
     _bDraging = false;
     _hit_border = None;
     _freezing = false; 
@@ -102,8 +103,16 @@ MainFrame::MainFrame()
     _taskBtn = NULL;
     isWin32 = true;
 #else
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
-    setAttribute(Qt::WA_TranslucentBackground);
+    // [MainFrame] nativeTitleBar: let the desktop draw the title bar and
+    // frame, otherwise DSView draws its own (frameless window).
+    _native_frame = AppConfig::Instance().frameOptions.nativeTitleBar;
+    if (_native_frame){
+        setWindowFlags(Qt::Window);
+    }
+    else{
+        setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
+        setAttribute(Qt::WA_TranslucentBackground);
+    }
     _is_win32_parent_window = false;
 #endif
  
@@ -123,6 +132,10 @@ MainFrame::MainFrame()
     setWindowIcon(icon);
     
     _titleBar = new toolbars::TitleBar(true, this, this, false);
+    if (_native_frame){
+        // Before MainWindow sets the title: it goes to the system title bar.
+        _titleBar->set_native();
+    }
     _mainWindow = new MainWindow(_titleBar, this);
     _mainWindow->setWindowFlags(Qt::Widget);
 
@@ -130,6 +143,7 @@ MainFrame::MainFrame()
     // window background with rounded corners ("Window frame" in theme.qss).
     _window_frame = new QFrame(this);
     _window_frame->setObjectName("window_frame");
+    _window_frame->setProperty("native", _native_frame);
     QVBoxLayout *vbox = new QVBoxLayout(_window_frame);
     vbox->setContentsMargins(0,0,0,0);
     vbox->setSpacing(0);
@@ -141,7 +155,11 @@ MainFrame::MainFrame()
     _layout->setContentsMargins(0,0,0,0);
  
 
-    if (!isWin32 || !_is_win32_parent_window)
+    if (_native_frame){
+        _titleBar->setVisible(false);
+    }
+
+    if ((!isWin32 || !_is_win32_parent_window) && !_native_frame)
     {
         _top_left = new widgets::Border (TopLeft, this);
         _top_left->setFixedSize(Margin, Margin);

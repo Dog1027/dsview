@@ -22,6 +22,7 @@
  
 #include <stdint.h>
 #include <getopt.h>
+#include <QSettings>
 #include <QApplication>
 #include <QDir>
 #include <QStyle> 
@@ -164,6 +165,23 @@ bool bHighScale = true;
       	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	}
 #endif 
+
+#ifdef Q_OS_LINUX
+	//----------------------native title bar on GNOME/Wayland
+	// GNOME does not draw title bars for Wayland windows of Qt apps (Qt
+	// would draw a plain one of its own), but it does for X11 windows. So
+	// with the native title bar ([MainFrame] nativeTitleBar), run through
+	// XWayland. An explicit QT_QPA_PLATFORM always wins.
+	if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")
+		&& qEnvironmentVariable("XDG_SESSION_TYPE") == "wayland"
+		&& qEnvironmentVariable("XDG_CURRENT_DESKTOP").contains("GNOME")
+		&& !qEnvironmentVariableIsEmpty("DISPLAY"))
+	{
+		QSettings st("DreamSourceLab", "DSView");
+		if (st.value("MainFrame/nativeTitleBar", true).toBool())
+			qputenv("QT_QPA_PLATFORM", "xcb");
+	}
+#endif
 
 	//----------------------init app
     QApplication a(argcFinal, argvFinal);
