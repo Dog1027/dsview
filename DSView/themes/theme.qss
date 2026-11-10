@@ -1846,18 +1846,28 @@ QDialogButtonBox QPushButton[kbfocus="true"]
     padding: 4px 11px;
 }
 
-/* Cancel / No (role set by MyStyle::polish from the button box role) */
+/* Cancel / No (role set by MyStyle::polish from the button box role):
+   red text and outline, filled red only on hover, so the blue OK stays
+   the one solid button. */
 QDialogButtonBox QPushButton[role="reject"]
+{
+    background-color: transparent;
+    border: 1px solid @danger;
+    color: @danger;
+}
+
+QDialogButtonBox QPushButton[role="reject"]:hover
 {
     background-color: @danger;
     border: 1px solid @danger;
     color: @on-accent;
 }
 
-QDialogButtonBox QPushButton[role="reject"]:hover
+QDialogButtonBox QPushButton[role="reject"]:pressed
 {
     background-color: @danger-hover;
     border: 1px solid @danger-hover;
+    color: @on-accent;
 }
 
 QDialogButtonBox QPushButton[role="reject"][kbfocus="true"]

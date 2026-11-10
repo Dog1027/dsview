@@ -122,6 +122,7 @@ class MyStyle : public QProxyStyle
         if (qobject_cast<QDialogButtonBox*>(widget) != nullptr) {
             widget->setAttribute(Qt::WA_StyledBackground, true);
             widget->setContentsMargins(0, 12, 0, 0);
+            widget->installEventFilter(this);   // equal button widths
         }
 
         // Check boxes and radio buttons: same keyboard-only focus ring
@@ -170,6 +171,14 @@ class MyStyle : public QProxyStyle
     using QProxyStyle::polish;
 
     bool eventFilter(QObject *obj, QEvent *event) override {
+        // Button box: the buttons at the right (OK, Cancel, Yes, No, ...)
+        // get one width, the widest one's. Help / Reset at the left keep
+        // their own.
+        if (event->type() == QEvent::Show || event->type() == QEvent::LayoutRequest) {
+            if (QDialogButtonBox *box = qobject_cast<QDialogButtonBox*>(obj))
+                equalize_buttons(box);
+        }
+
         // A combo box list opens as wide as the combo box only, so long
         // items (and the scroll bar) got cut at the right. Widen it to its
         // content and keep it on the screen.
@@ -213,6 +222,29 @@ class MyStyle : public QProxyStyle
     }
 
 private:
+    static void equalize_buttons(QDialogButtonBox *box) {
+        QList<QPushButton*> same;
+        int w = 0;
+        for (QAbstractButton *b : box->buttons()) {
+            QPushButton *pb = qobject_cast<QPushButton*>(b);
+            if (!pb || pb->isHidden())
+                continue;
+            const QDialogButtonBox::ButtonRole role = box->buttonRole(pb);
+            if (role == QDialogButtonBox::HelpRole || role == QDialogButtonBox::ResetRole)
+                continue;
+            same.append(pb);
+            // The width it wants without our minimum.
+            const int keep = pb->minimumWidth();
+            pb->setMinimumWidth(0);
+            w = std::max(w, pb->sizeHint().width());
+            pb->setMinimumWidth(keep);
+        }
+        for (QPushButton *pb : same) {
+            if (pb->minimumWidth() != w)
+                pb->setMinimumWidth(w);
+        }
+    }
+
     static void fit_combo_popup(QComboBox *cb, QWidget *popup) {
         QAbstractItemView *view = cb->view();
         const int text_w = view->sizeHintForColumn(0);

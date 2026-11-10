@@ -19,8 +19,10 @@ Principles
 3. **Cards on a backdrop.** The waveform area, the side panels and dialogs
    are rounded cards (`@bg`) on the darker window (`@chrome`).
 4. **One blue button, one red.** In a dialog the button that does the
-   thing (OK, Yes, Save) is `@accent`; the one that backs out (Cancel,
-   No) is `@danger`. Everything else is a plain button.
+   thing (OK, Yes, Save) is filled `@accent`; the one that backs out
+   (Cancel, No) is `@danger` text and outline, filled only on hover, so
+   the blue button stays the one solid button. Everything else is a
+   plain button.
 5. **Icons alone only with a tooltip.** An icon-only button always has
    its text as tooltip.
 6. **One place for the look.** Colours, fonts, borders and padding come
@@ -151,9 +153,12 @@ Save in a button box is the default. Push buttons take focus only by
 Tab, and only that keyboard focus shows a 2 px ring
 (`[kbfocus="true"]`: `@accent`, `@text-bright` on the default button),
 so a clicked button never looks stuck. Buttons with the reject or no
-role (Cancel, No) are red: `MyStyle::polish` sets `role="reject"`,
+role (Cancel, No) are red outlines (filled on hover, `@text-bright`
+ring on keyboard focus): `MyStyle::polish` sets `role="reject"`,
 `theme.qss` colours them. Other buttons in the box (Reset, Help,
-Abort) stay plain.
+Abort) stay plain. The buttons at the right of a box share one width,
+the widest one's (`MyStyle::equalize_buttons`); Help and Reset sit at
+the left (GNOME order) and keep their own.
 
 **Check boxes and radio buttons.** Same rule: no focus look after a
 click; Tab shows a 2 px `@accent` ring (`FocusRing` in `mystyle.h`)
