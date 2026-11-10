@@ -1,32 +1,36 @@
 /*
- * DSView dark palette. Used by theme.qss as @name.
+ * DSView dark palette, modelled on VS Code "Dark Modern".
+ * Used by theme.qss as @name.
  * Format: @name: value;   (value may reference another @name)
  */
 
 /* backgrounds, from back to front */
-@bg:             #1e1f22;   /* window, waveform area */
-@surface:        #2b2d30;   /* inputs, panels, dock titles */
-@hover:          #393b40;   /* hover fill, dividers */
-@border:         #43454a;   /* input / button borders */
-@handle:         #4e5157;   /* scrollbar handles, strong lines */
-@border-hover:   #5a5d63;   /* input border on hover */
+@chrome:         #181818;   /* title bar, toolbar, panel headers (VS Code side bar) */
+@bg:             #1f1f1f;   /* window, waveform area (VS Code editor) */
+@surface:        #313131;   /* inputs, buttons */
+@hover:          #3a3d3e;   /* hover fill, inner dividers */
+@divider:        #2b2b2b;   /* lines between title bar / toolbar / panels */
+@border:         #3c3c3c;   /* input / button borders */
+@handle:         #4a4a4a;   /* scrollbar handles, strong lines */
+@border-hover:   #5a5a5a;   /* input border on hover */
 
 /* text */
-@text:           #dfe1e5;
+@text:           #cccccc;
 @text-bright:    #ffffff;   /* selected / highlighted text */
-@text-muted:     #9da0a8;   /* secondary labels, headers */
-@text-disabled:  #6f737a;
+@text-muted:     #9d9d9d;   /* secondary labels, headers */
+@text-disabled:  #6e6e6e;
 
 /* accent */
-@accent:         #3574f0;
-@accent-hover:   #4a83f5;
-@accent-pressed: #2f66d6;
+@accent:         #0078d4;
+@accent-hover:   #026ec1;
+@accent-pressed: #005ba4;
 @on-accent:      #ffffff;   /* text on accent background */
-@selection:      #2e436e;   /* selected rows, menu items */
+@selection:      #04395e;   /* selected rows, menu items */
 
 /* status */
-@danger:         #c94f4f;
-@danger-hover:   #e06c6c;
+@danger:         #f14c4c;
+@danger-hover:   #f36d6d;
+@close-hover:    #e81123;   /* window close button */
 
 /* icon set used in url(...) */
 @icons:          :/dark;

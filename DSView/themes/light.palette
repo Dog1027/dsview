@@ -1,32 +1,36 @@
 /*
- * DSView light palette. Used by theme.qss as @name.
+ * DSView light palette, modelled on VS Code "Light Modern".
+ * Used by theme.qss as @name.
  * Format: @name: value;   (value may reference another @name)
  */
 
 /* backgrounds, from back to front */
-@bg:             #f7f8fa;
-@surface:        #ffffff;
-@hover:          #e8eaee;
-@border:         #c9ccd6;
-@handle:         #b4b8c2;
-@border-hover:   #a8adbd;
+@chrome:         #f8f8f8;   /* title bar, toolbar, panel headers */
+@bg:             #ffffff;   /* window, waveform area */
+@surface:        #ffffff;   /* inputs, buttons */
+@hover:          #e6e6e6;   /* hover fill, inner dividers */
+@divider:        #e5e5e5;   /* lines between title bar / toolbar / panels */
+@border:         #cecece;   /* input / button borders */
+@handle:         #c4c4c4;   /* scrollbar handles, strong lines */
+@border-hover:   #a0a0a0;   /* input border on hover */
 
 /* text */
-@text:           #1e1f22;
+@text:           #3b3b3b;
 @text-bright:    #000000;
-@text-muted:     #6c707e;
-@text-disabled:  #a8adbd;
+@text-muted:     #6f6f6f;
+@text-disabled:  #a0a0a0;
 
 /* accent */
-@accent:         #3574f0;
-@accent-hover:   #4682fa;
-@accent-pressed: #2a5fd0;
+@accent:         #005fb8;
+@accent-hover:   #0258a8;
+@accent-pressed: #004c94;
 @on-accent:      #ffffff;
-@selection:      #d4e2ff;
+@selection:      #cce3f7;
 
 /* status */
 @danger:         #e55765;
 @danger-hover:   #f07b86;
+@close-hover:    #e81123;
 
 /* icon set used in url(...) */
 @icons:          :/light;

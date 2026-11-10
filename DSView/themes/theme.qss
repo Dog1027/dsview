@@ -395,9 +395,10 @@ QGroupBox
 QGroupBox::title
 {
     subcontrol-origin: margin;
-    subcontrol-position: top center;
-    padding-left: 10px;
-    padding-right: 10px;
+    subcontrol-position: top left;
+    left: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
     padding-top: 10px;
 }
 
@@ -948,10 +949,10 @@ QDockWidget
 }
 
 QDockWidget::title {
-  background-color: @surface;
+  background-color: @chrome;
   padding: 6px 8px;
   border: none;
-  border-bottom: 1px solid @hover;
+  border-bottom: 1px solid @divider;
 }
 
 QDockWidget::close-button,
@@ -1133,7 +1134,20 @@ QToolButton#MaximizeButton:hover, QToolButton#MaximizeButton::menu-button:hover 
 }
 
 QToolButton#CloseButton:hover, QToolButton#CloseButton::menu-button:hover {
-    background-color: @danger;
+    background-color: @close-hover;
+}
+
+/* Window title bar (main window and dialogs), VS Code style */
+QWidget#TitleBar
+{
+    background-color: @chrome;
+    border-bottom: 1px solid @divider;
+}
+
+QWidget#TitleBar QLabel
+{
+    background-color: transparent;
+    color: @text-muted;
 }
 
 QToolButton#FileCloseButton:hover, QToolButton#FileCloseButton::menu-button:hover {
@@ -1396,14 +1410,14 @@ QAbstractScrollArea
 QSplitter::handle:horizontal,
 QMainWindow::separator
 {
-    background-color: @surface;
+    background-color: @divider;
     width: 3px;
     border: none;
 }
 
 QSplitter::handle:vertical
 {
-    background-color: @surface;
+    background-color: @divider;
     height: 3px;
 }
 
@@ -1534,9 +1548,9 @@ QTextEdit#PathLine{
  * ================================================================ */
 QToolBar#main_bar
 {
-    background-color: @bg;
+    background-color: @chrome;
     border: none;
-    border-bottom: 1px solid @hover;
+    border-bottom: 1px solid @divider;
     padding: 4px 2px 4px 6px;
     spacing: 0px;
 }
@@ -1610,6 +1624,11 @@ QToolBar QComboBox
     margin: 0px 2px;
     padding: 3px 2px 3px 4px;
     min-height: 20px;
+}
+
+QToolBar#main_bar QLabel
+{
+    background-color: transparent;
 }
 
 QLabel#SampleAtLabel
