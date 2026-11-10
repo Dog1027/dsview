@@ -33,7 +33,6 @@
         <file>icons/showDoc31.png</file>
         <file>icons/dark/start.svg</file>
         <file>icons/dark/stop.svg</file>
-        <file>icons/demo.svg</file>
         <file>icons/dark/moder.svg</file>
         <file>icons/dark/modes.svg</file>
         <file>icons/dark/trigger.svg</file>
@@ -81,8 +80,16 @@
         <file>icons/dark/export.svg</file>
         <file>icons/dark/fft.svg</file>
         <file>icons/dark/folder.svg</file>
+        <file>icons/dark/demo.svg</file>
+        <file>icons/dark/data.svg</file>
+        <file>icons/dark/usb2.svg</file>
+        <file>icons/dark/usb3.svg</file>
         <file>icons/dark/help.svg</file>
         <file>icons/light/folder.svg</file>
+        <file>icons/light/demo.svg</file>
+        <file>icons/light/data.svg</file>
+        <file>icons/light/usb2.svg</file>
+        <file>icons/light/usb3.svg</file>
         <file>icons/light/help.svg</file>
         <file>icons/dark/file.svg</file>
         <file>icons/dark/gear.svg</file>
@@ -106,10 +113,7 @@
         <file>icons/dark/settings.svg</file>
         <file>icons/light/settings.svg</file>
         <file>icons/Chinese.svg</file>
-        <file>icons/data.svg</file>
         <file>icons/English.svg</file>
-        <file>icons/usb2.svg</file>
-        <file>icons/usb3.svg</file>
         <file>icons/light/moder.svg</file>
         <file>icons/light/modes.svg</file>
         <file>icons/math.svg</file>

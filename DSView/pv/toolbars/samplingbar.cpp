@@ -210,18 +210,18 @@ namespace pv
             if (bDev)
             {
                 if (_device_agent->is_demo())
-                    _device_type.setIcon(QIcon(":/icons/demo.svg"));
+                    _device_type.setIcon(QIcon(GetIconPath() + "/demo.svg"));
                 else if (_device_agent->is_file())
-                    _device_type.setIcon(QIcon(":/icons/data.svg"));
+                    _device_type.setIcon(QIcon(GetIconPath() + "/data.svg"));
                 else
                 {
                     int usb_speed = LIBUSB_SPEED_HIGH;
                     _device_agent->get_config_int32(SR_CONF_USB_SPEED, usb_speed);
 
                     if (usb_speed == LIBUSB_SPEED_SUPER)
-                        _device_type.setIcon(QIcon(":/icons/usb3.svg"));
+                        _device_type.setIcon(QIcon(GetIconPath() + "/usb3.svg"));
                     else
-                        _device_type.setIcon(QIcon(":/icons/usb2.svg"));
+                        _device_type.setIcon(QIcon(GetIconPath() + "/usb2.svg"));
                 }
             }
 
